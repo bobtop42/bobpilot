@@ -13,5 +13,7 @@ void ATC::setTarget(float value) {
     targetSpeed = value;
 }
 void ATC::update(){
-    throttle = (currentSpeed-targetSpeed) * Kp;
+    if(engaged){
+        throttle = (currentSpeed-targetSpeed) * Kp;
+    }
 }

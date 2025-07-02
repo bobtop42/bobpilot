@@ -7,7 +7,7 @@ class ATC {
         float currentSpeed;
         float throttle;
         bool engaged;
-        const float Kp = 0.1; // look up pid control
+        const float Kp = 0.1; //look up pid control
 
         ATC();
 
