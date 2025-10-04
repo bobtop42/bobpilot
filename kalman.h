@@ -1,6 +1,7 @@
-#include "i2c.h"
 #ifndef KALMAN_H
-#define KALMAN_H 
+#define KALMAN_H
+#include "i2c.h"
+#include "plane.h"
 
 class KALMAN
 {
@@ -13,10 +14,11 @@ float setUp();
 void xPred(float (&X)[6][1]);
 void pPred(float (&P)[6][6]);
 void kGain(float (&K)[6][3]);
-void measureUpdate(float (&pAngle)[3][3]);
+void measureUpdate(PLANE* plane);
 void updateState(float (&X)[6][1]);
 void updateP(float (&P)[6][6]);
-void loop(float (&X)[6][1], float (&P)[6][6], float (&K)[6][3], float (&Y)[6][1]);
+void pushKalmandData(PLANE * plane);
+void loop(float (&X)[6][1], float (&P)[6][6], float (&K)[6][3], float (&Y)[6][1], PLANE* plane);
 
 private:
 enum{MK = 6, MX = 1, MB = 3};
