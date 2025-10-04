@@ -1,67 +1,44 @@
 #include "pitch.h"
 
-PITCH::PITCH(float targetPitch, float currentPitch, bool engaged): targetPitch_(targetPitch), currentPitch_(currentPitch), engaged_(engaged), PitchPID(0.0f, 0.0f, 0.0f) {};
+PITCH::PITCH(float targetPitch, float currentPitch, bool engaged): targetPitch_(targetPitch), currentPitch_(currentPitch), engaged_(engaged) {};
 
-void PITCH::engaged(PITCH& myPitch)
+void PITCH::engaged()
 {
   engaged_ = true;
-  myPitch.targetPitch();
 };
 
-void PITCH::disengaged(PITCH& myPitch)
+void PITCH::disengaged()
 {
   engaged_ = false;
-  myPitch.targetPitch_ = 0.0f;
 };
 
-void PITCH::targetPitch()
+void PITCH::targetPitch(float value, PLANE* plane)
 {
-  float pa = 5.0f; //placeholder for navsys.plane.PA.pitch
-  float wpa = 1.0f; //placeholder for navsyz.plane.WPA.pitch
-  if(wpa>pa && pa>=0.0f)
-  {
-    //pitch up & cont up
-    PitchDir = Dir::Up;
-    targetPitch_ = wpa - pa;
-    return;
-  }
-  else if(wpa<pa && pa<=0.0f)
-  {
-    //pitch down & cont down
-    PitchDir = Dir::Down;
-    targetPitch_ = pa - wpa;
-    return;
-  }
-  else if(wpa<pa && pa>=0.0f)
-  {
-    //pitch up & cont down
-    PitchDir = Dir::Up;
-    targetPitch_ = pa - wpa;
-    return;
-  }
-  else if(wpa>pa && pa<=0.0f)
-  {
-    //pitch down & cont up
-    PitchDir = Dir::Down;
-    targetPitch_ = wpa - pa;
-    return;
-  }
-  else
-  {
-    //NOTE: add flag raise if on course so
-    //user knows &/or smthong went wrong
-    //and defaults to this
-    targetPitch_ = 0.0f;
-    PitchDir = Dir::Level;
-  }
+  targetPitch_ = fabs(value);
+  PitchDir = static_cast<int8_t>(value/fabs(value) + static_cast<float>(!static_cast<int>(fabs(value))));
+  //read target roll for description of this code, its the same logic/value wise, but with pitch instead of roll
+  
+}
+
+void PITCH::targetPitch(PLANE* plane)
+{
+  targetPitch_ = fabs(plane->WPA.pitch - plane->PA.pitch);
+  PitchDir = (plane->WPA.pitch - plane->PA.pitch)/fabs(plane->WPA.pitch - plane->PA.pitch);
 };
 
-void PITCH::update(DESCRETE *myDescrete)
+void PITCH::adjustElevator(float value, PLANE* plane)
+{
+  plane->ep.elevator.fL += value * static_cast<float>(PitchDir);
+  plane->ep.elevator.fR += value * static_cast<float>(PitchDir);
+  plane->ep.elevatorAdj(plane->ep);
+}
+
+float PITCH::update(PLANE* plane)
 {
   if(engaged_)
   {
-    targetPitch();
-
-    myDescrete->calc(myDescrete, targetPitch_);    
+    targetPitch(plane);
+    float pidAdj = pid.calculate(targetPitch_);
+    adjustElevator(pidAdj, plane);
   }
 }
