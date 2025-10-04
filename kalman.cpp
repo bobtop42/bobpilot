@@ -1,4 +1,5 @@
 #include "kalman.h"
+#include "io.h"
 
 void KALMAN::xPred(float (&X)[6][1])
 {
@@ -27,15 +28,10 @@ void KALMAN::pPred(float (&P)[6][6])
     {
       for(int j=0; j<3; ++j)
         {
-          for(int k=0; k<3; ++k)
-            {
-              P[i][j+3] += (A[j][k] * P[k][j+3]) + (dt[j][k] * P[k+3][j+3]);
-              P[i][j] += (A[j][k] * P[k][j]) + (dt[j][k] * P[k+3][j]);
-              P[i+3][j+3] += A[j][k] * P[k+3][j+3];
-              P[i+3][j] += P[j+3][k] * A[k][j];
-              P[i][j] += (P[j][k] * A[k][j]) + (P[j][k+3] * dt[k][j]);
-              P[i+3][j] += (P[j+3][k] * A[k][j]) + (P[j+3][k+3] * dt[k][j]);
-            }
+          //new code below. very very very fast
+          P[i+3][j]+=0.1f*P[i+3][j+3]; //add q matrix
+          P[i][j]+=0.1f*(P[i][j+3]+P[i+3][j]);
+          P[i][j+3]+=0.1f*P[i+3][j+3];
         }
     }
 }
@@ -61,14 +57,14 @@ void KALMAN::kGain(float (&K)[6][3])
     }
 }
 
-void KALMAN::measureUpdate(float (&pAngle)[3][3])
+void KALMAN::measureUpdate(PLANE* plane)
 {
-  Y[0][0] = pAngle[0][0];
-  Y[1][0] = pAngle[2][0];
-  Y[2][0] = pAngle[0][1];
-  Y[3][0] = pAngle[2][1];
-  Y[4][0] = pAngle[0][1];
-  Y[5][0] = pAngle[2][2];
+  Y[0][0] = plane->pAngle[0][0];
+  Y[1][0] = plane->pAngle[2][0];
+  Y[2][0] = plane->pAngle[0][1];
+  Y[3][0] = plane->pAngle[2][1];
+  Y[4][0] = plane->pAngle[0][1];
+  Y[5][0] = plane->pAngle[2][2];
 }
 
 void KALMAN::updateState(float (&X)[6][1])
@@ -106,12 +102,23 @@ void KALMAN::updateP(float (&P)[6][6])
     }
 }
 
-void KALMAN::loop(float (&X)[6][1], float (&P)[6][6], float (&K)[6][3], float (&Y)[6][1])
+void KALMAN::pushKalmandData(PLANE* plane)
+{
+  plane->pAngle[0][0] = Y[0][0];
+  plane->pAngle[2][0] = Y[1][0];
+  plane->pAngle[0][1] = Y[2][0];
+  plane->pAngle[2][1] = Y[3][0];
+  plane->pAngle[0][1] = Y[4][0];
+  plane->pAngle[2][2] = Y[5][0];
+}
+
+void KALMAN::loop(float (&X)[6][1], float (&P)[6][6], float (&K)[6][3], float (&Y)[6][1], PLANE* plane)
 {
   xPred(X);
   pPred(P);
   kGain(K);
-  //measureUpdate(pAngle); //add when get i2c stuff
+  measureUpdate(plane);
   updateState(X);
   updateP(P); 
+  pushKalmandData(plane);
 }
