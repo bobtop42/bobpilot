@@ -1,32 +1,37 @@
-#include "pid.h"
 #ifndef PITCH_H
 #define PITCH_H
+#include "pid.h"
+#include "MATHLIB.h"
+#include "plane.h"
 
 class PITCH
 {
 public:
+int8_t PitchDir;
+/*
+if plane is straight PitchDir -> 0x00
+if plane is pitching up PitchDir -> 0xFF
+if plane is pitching down PitchDir -> 0x01
+*/
 
-enum class Dir{Up, Level, Down};
-Dir PitchDir;
-
-DESCRETE PitchPID;
+PID pid{0.1f, 0.1f, 0.1f};
 
 PITCH(float targetPitch, float currentPitch, bool engaged);
 
-void engaged(PITCH& myPitch);
-void disengaged(PITCH& myPitch);
-void update(DESCRETE *myDescrete);
+void targetPitch(float value, PLANE* plane);
+void targetPitch(PLANE* plane);
+void engaged();
+void disengaged();
+float update(PLANE* plane);
 void setUp();
+void adjustElevator(float value, PLANE* plane);
+
+float targetPitch_;
 
 private:
-float targetPitch_;
 float currentPitch_;
 bool engaged_;
 
-//add navsys stuff to parathesis 
-void targetPitch();
-
 };
-
-
+  
 #endif 
