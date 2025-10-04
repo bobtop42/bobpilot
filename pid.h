@@ -3,61 +3,29 @@
 
 class PID
 {
-public:
-    PID();
-    void returnAdd();
-
-    struct PIDadd
-    {
-        float add;
-        float prev_add;
-
-        void shift(PIDadd& myPIDadd);
-    };
-
-    struct PIDerror
-    {
-        float error;
-        float prev_error;
-        float prev_error2;
-
-        void shift(PIDerror& myError, float newError);
-    };
-};
-
-class VELOCITY : public PID
-{
-public:
-    VELOCITY(float kp, float ki, float kd)
-        : kp_(kp), ki_(ki), kd_(kd) {}
-
-    PIDadd add;
-    PIDerror error;
-
-    void calc(VELOCITY *myVelocity, float newError);
-
 private:
-    float kp_;
-    float ki_;
-    float kd_;
-};
+float kp_;
+float ki_;
+float kd_;
+int period = 0;
+float target;
 
-class DESCRETE : public PID
-{
+float temp;
+float error = 0.0f;
+float cum_error = 0.0f;
+float prev_error = 0.0f;
+
 public:
-    DESCRETE(float kp, float ki, float kd)
-        : kp_(kp), ki_(ki), kd_(kd) {}
 
-  
-    PIDadd add;
-    PIDerror error;
+float calculate(float value)
+{
+    cum_error += error = value;
+    period++;
+    return (kp_ * error) + (ki_ * cum_error/period) + (kd_ * (error - prev_error));
+    
+}
+PID(float KP, float KI, float KD): kp_(KP), ki_(KI), kd_(KD) {};
 
-    void calc(DESCRETE *myDescrete, float newError);
-
-private:
-    float kp_;
-    float ki_;
-    float kd_;
 };
 
 #endif
