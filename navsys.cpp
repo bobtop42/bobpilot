@@ -2,146 +2,50 @@
 //#include "kalman.h"
 
 //READ ME: num of wp vals set in main? 14 for rn tho
-void flapPos::rad(flapPos& myFlapPos)
-{
-  fL = (myFlapPos.fL / 360.0f);
-  fR = (myFlapPos.fR / 360.0f);
-};
 
-void EP::elevatorAdj(EP ep)
-{
-  if(ep.elevator.fL > 60.0f)
-  {
-    ep.elevator.fL = 60.0f;
-    ep.elevator.fR = 60.0f;
-    return;
-  }
-  else if(ep.elevator.fL < -60.0f)
-  {
-    ep.elevator.fL = -60.0f;
-    ep.elevator.fR = -60.0f;
-  }
-};
 
-void AP::aileronAdj(AP ap)
-{
-  if(ap.aileron.fL > 60.0f)
-  {
-    ap.aileron.fL = 60.0f;
-    ap.aileron.fR = -60.0f;
-    return;
-  }
-  else if(ap.aileron.fL < -60.0f)
-  {
-    ap.aileron.fL = -60.0f;
-    ap.aileron.fR = 60.0f;
-  }
-};
+NAVSYS::NAVSYS():npc(0), routeLen(14) {};
 
+//wayPointAngleFinder has been updated! Nww completely branchless. yay. 
 void NAVSYS::wayPointAngleFinder()
 {
-  float wx = WPXYZ[npc][0];
-  float wy = WPXYZ[npc][1];
-  float wz = WPXYZ[npc][2];
+  float wx  = plane.WPXYZ[plane.npc][0];
+  float wy = plane.WPXYZ[plane.npc][1];
+  float wz = plane.WPXYZ[plane.npc][2];
 
   float px = plane.loc.x;
   float py = plane.loc.y;
   float pz = plane.loc.z;
 
+  wx = longToFeet(wx, wz); 
+  px = longToFeet(px, pz);
   
-  float y;
+  wy = latToFeet(wx); 
+  py = latToFeet(px);
 
-  if(wy < py) { y = py - wy; } else { y = wy - py; };
+  wy-=py; wx-=px; wz-=pz;
 
-  if(wx < px && wz > pz)
-  {
-    float x = px - wx; float z = wz - pz;
-    
-    plane.WPA.roll = static_cast<float>(atan2(x, z));
-    double sqrtXZ = (x*x + z*z);
-    sqrtXZ = static_cast<float>(sqrt(sqrtXZ));
-    plane.WPA.pitch = static_cast<float>(atan2(y, sqrtXZ));
-    
-    return;
-  }
-  else if(wx < px && wz < pz)
-    {
-      float x = px - wx; float z = pz - wz;
-
-      plane.WPA.roll = static_cast<float>(atan2(x, z));
-      float sqrtXZ = (x*x + z*z);
-      sqrtXZ = static_cast<float>(sqrt(sqrtXZ));
-      plane.WPA.pitch = static_cast<float>(atan2(y, sqrtXZ));
-      
-      return;
-    }
-  else if(wx > px && wz < pz)
-    {
-      float x = wx - px; float z = pz - wz;
-      
-      plane.WPA.roll = static_cast<float>(atan2(x, z));
-      float sqrtXZ = (x*x + z*z);
-      sqrtXZ = static_cast<float>(sqrt(sqrtXZ));
-      plane.WPA.pitch = static_cast<float>(atan2(y, sqrtXZ));
-      
-      return;
-    }
-  else if(wx > px && wz > pz)
-    {
-      float x = wx - px; float z = wz - pz;
-      
-      plane.WPA.roll = static_cast<float>(atan2(x, z));
-      float sqrtXZ = (x*x + z*z);
-      sqrtXZ = static_cast<float>(sqrt(sqrtXZ));
-      plane.WPA.pitch = static_cast<float>(atan2(y, sqrtXZ));
-
-      return;
-    }
+  plane.WPA.roll = fabs(atan2(wx,wz)) + ((wx/fabs(wx) - 1.0f) * -1.570795f) + ((wz/fabs(wz) - 1.0f) * -0.7853795);
+  plane.WPA.pitch = atan2(wy, (sqrt(wx * wx + wz * wz)));
 };
 
 //fill in wiht kalman filter stuff later: maybevoid NAVSYS::planeAngleFinder(KALMAN* kalman)???
-void NAVSYS::planeAngleFinder(float kX[3][0])
+//also planePointAngleFinder has been updated! Nww completely branchless. yay.
+void NAVSYS::planeAngleFinder(CKALMAN* ckalman, PLANE* plane, HMC::HMC* hmc)
 {
-  float x = kX[1][0];
-  float y = kX[2][0];
-  float z = kX[3][0];
+  float x = plane->pAngle[0][0];
+  float y = plane->pAngle[1][0];
+  float z = plane->pAngle[2][0];
 
+  plane->PA.roll = fabs(atan2(x, z) + ((x/fabs(x) - 1.0f) * -1.570795f) + ((z/fabs(z) - 1.0f) * -0.7853795));
+  plane->PA.pitch = atan2(y, (sqrt(x * x + z * z)));
 
-  //comment out PAE counter stuff. its part of error handling.
-
-  if(x < 0.0f && z > 0.0f)
-  {
-    plane.PA.roll = static_cast<float>(atan(x/z)*(-1.0f)) * (-1.0f);
-    float sqrtXZ = (x*x + z*z);
-    sqrtXZ = static_cast<float>(atan2(y, sqrtXZ));
-    return;
-  }
-  else if(x >0.0f && z > 0.0f)
-  {
-    plane.PA.roll = static_cast<float>(atan(x/z)*(-1.0f)) * (-1.0f);
-    float sqrtXZ = (x*x + z*z);
-    sqrtXZ = static_cast<float>(atan2(y, sqrtXZ));
-    return;
-  }
-  else if(x < 0.0f && z < 0.0f)
-  {
-    plane.PA.roll = static_cast<float>(atan(x/z) + (0.5f*PI));
-    float sqrtXZ = (x*x + z*z);
-    sqrtXZ = static_cast<float>(atan2(y, sqrtXZ));
-    return;
-  }
-  else if( x > 0.0f && z < 0.0f)
-  {
-    plane.PA.roll = static_cast<float>(atan(x/z) + (0.5f*PI));
-    float sqrtXZ = (x*x + z*z);
-    sqrtXZ = static_cast<float>(atan2(y, sqrtXZ));
-    return;
-  }
-    
+  ckalman->loop(plane, hmc);
+  plane->PA.roll = ckalman->returnX(0);
   
 }
 
-void NAVSYS::updateEP(Plane& plane, float value)
+void NAVSYS::updateEP(PLANE& plane, float value)
 {
   plane.ep.elevator.fL += value;
   plane.ep.elevator.fR += value;
@@ -163,5 +67,30 @@ void NAVSYS::updateAP(float value)
   }
   
   plane.ap.aileronAdj(plane.ap);
+  
+}
+
+void NAVSYS::updateNpc(PLANE* plane)
+{
+  float wx = plane->WPXYZ[plane->npc][0];
+  float wy = plane->WPXYZ[plane->npc][1];
+  float wz = plane->WPXYZ[plane->npc][2];
+
+  wx = longToFeet(wx, wz); wz = latToFeet(wz);
+
+  float px = plane->loc.x;
+  float py = plane->loc.y;
+  float pz = plane->loc.z;
+
+  px = longToFeet(px, pz); pz = latToFeet(pz);
+
+  wx = fabs(wx-px); wy = fabs(wy-py); wz = fabs(wz-pz);
+
+  //plane must be withing 4ft of the waypoint to be counted as marked. code below dis, then truncates the flip val with !
+  npc += 1 * (!static_cast<int> (wx/4.0f)) *
+             (!static_cast<int> (wy/4.0f)) *  
+             (!static_cast<int> (wz/4.0f));
+  //if true npc==routelen==0, then flips with ! 2x(zero -> 1, non-zero -> 0)
+  routeCompleted = !!(routeLen - npc);
   
 }
