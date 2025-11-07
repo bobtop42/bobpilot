@@ -1,6 +1,6 @@
 #include "hold.h"
 
-void HOLD::prePosCalc(int radiusft, float alt, float lat, float lng, int8_t clockWise, PLANE* plane)
+void HOLD::prePosCalc(float radiusft, float alt, float lat, float lng, int8_t clockWise, PLANE* plane)
 {
   tx = longToFeet(lng, lat);
   ty = alt;
@@ -40,8 +40,8 @@ void HOLD::prePosCalc(int radiusft, float alt, float lat, float lng, int8_t cloc
 
 void HOLD::targetHeading(PLANE* plane, PITCH* pitch, ROLL* roll)
 {
-  roll->targetRoll(); //fix???
-  pitch->targetPitch();
+  roll->targetRoll(plane); //fix???
+  pitch->targetPitch(plane);
 }
 
 void HOLD::holdAlt(float altft, PLANE* plane)
@@ -69,12 +69,58 @@ void HOLD::heading(float dir, PLANE* plane, ROLL* roll)
 
   tx = ((dir - Proll)/fabs(dir - Proll)) * tx;
 
-    roll->targetRoll(temp);
+    roll->targetRoll(tx, plane);
   
 }
 
 void HOLD::alt(float alt, PLANE* plane, PITCH* pitch)
 {
   holdAlt(alt, plane);
+  pitch->targetPitch(plane);
+}
+
+void HOLD::holdCircle(int radiusft, float alt, float Lat, float Long, int8_t clockWise, PLANE* plane, float circleDiv)
+{
+  px = plane->loc.x;
+  py = plane->loc.y;
+  pz = plane->loc.z;
+
+  px = longToFeet(px, pz); pz = latToFeet(pz);
+  Long = longToFeet(Long, Lat); Lat = latToFeet(Lat);
+  Long-=px; Lat-=pz;
+  
+  tx = fabs(atan2(Long, Lat) + ((Long/fabs(Long) - 1.0f) * -1.5750795f) + ((Lat/fabs(Lat) - 1.0f) * -0.7853795f));
+
+  Long += asin(tx + (circleDiv * static_cast<float>(clockWise)));
+  Lat += acos(tx + (circleDiv * static_cast<float>(clockWise)));
+
+  Long-=px; Lat-=pz;
+
+  plane->WPA.roll = fabs(atan2(Long, Lat) + ((Long/fabs(Long) - 1.0f) * -1.570795f) + ((Lat/fabs(Lat) - 1.0f) * -0.7853795f));
+
+  alt-=py;
+  plane->WPA.pitch = atan2(alt, (sqrt(Long * Long + Lat * Lat)));
+}
+
+void HOLD::holdCircle(int radiusft, float alt, float Lat, float Long, int8_t clockWise, PLANE* plane, ROLL* roll, PITCH* pitch, float circleDiv)
+{
+  circleDiv = circleDiv + !static_cast<int>(fabs(circleDiv) + 0.9999999f)/fabs(circleDiv) + !static_cast<int>(fabs(circleDiv) + 0.9999999f);
+  
+  px = plane->loc.x;
+  py = plane->loc.y;
+  pz = plane->loc.z;
+
+  px = longToFeet(px, pz); pz = latToFeet(pz);
+  tx = longToFeet(Long, Lat); tz = latToFeet(Lat);
+
+  if(fabs(px-tx) > 4.0f && fabs(py-alt) > 4.0f && fabs(pz-tz) > 4.0f)
+  {
+    prePosCalc(radiusft, alt, Lat, Long, clockWise, plane);
+  }
+  else
+  {
+    holdCircle(radiusft, alt, Lat, Long, clockWise, plane, circleDiv);
+  }
+  roll->targetRoll(plane);
   pitch->targetPitch(plane);
 }
