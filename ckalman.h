@@ -13,6 +13,7 @@ void kGain(float (&k)[2][2]);
 void measureUpdate(float(&y)[2], PLANE* plane, HMC::HMC* hmc);
 void xUpdate(float (&x)[2][1]);
 void updateP(float (&p)[2][2]);
+double magNorthOffset(PLANE* plane);
 
 public:
 void loop(PLANE* plane, HMC::HMC* hmc);
