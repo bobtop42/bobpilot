@@ -40,6 +40,8 @@ M2H motors;
 LOGGER logger{filename};
 KALMAN kalman;
 
+void checkLoopType();
+
 void printStatus();
 void setUp();
 void update();
@@ -55,6 +57,7 @@ void disengaged();
 bool isRunning;
 bool setUp_ = false;
 bool engaged_ = false;
+bool isRoute = true;
 
 private:
 int setUpCounter = 0;
