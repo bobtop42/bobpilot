@@ -115,7 +115,35 @@ void REAL::update()
   }
 }
 
+void REAL::checkLoopType()
+{
+  
+}
+
 void REAL::loop()
 {
-  //put in hold pos/reg loop switches etc
+  if(isRoute)
+  {
+    while(!flightComputer.routeCompleted)
+    {
+      update();
+    }
+    if(flightComputer.routeCompleted)
+    {
+      isRoute = false;
+      float Long = plane->loc.x;
+      float Lat = plane->loc.z;
+      float ln = longToFeet(Long, Lat);
+      float lt = latToFeet(Lat);
+      while(true)
+        {
+          if(!controller.interupt())
+          {
+            holdComputer.holdCircle(50.0f, 150, Lat, Long, 0x01, plane, roll, pitch, 10.0f);
+          }
+          else{break;}
+        }
+    }
+  }
 }
+
