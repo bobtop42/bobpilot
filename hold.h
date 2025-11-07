@@ -10,12 +10,15 @@
 class HOLD
 {
 public:
-void prePosCalc(int radiusft, float alt, float lat, float lng, int8_t clockWise, PLANE* plane);
+void prePosCalc(float radiusft, float alt, float lat, float lng, int8_t clockWise, PLANE* plane);
 void targetHeading(PLANE* plane, PITCH* pitch, ROLL* roll);
 void holdAlt(float altft, PLANE* plane);
 void holdHeading(float dir, PLANE* pkane);
 void heading(float dir , PLANE* plane, ROLL* roll);
 void alt(float alt, PLANE* plane, PITCH* pitch);
+void holdCircle(int radiusft, float alt, float Lat, float Long, int8_t clockWise, PLANE* plane, float circleDiv);
+void holdCircle(int radiusft, float alt, float Lat, float Long, int8_t clockWise, PLANE* plane, ROLL* roll, PITCH* pitch, float circleDiv);
+
 
 float roll;
 float pitch;
