@@ -34,6 +34,7 @@ int I2C::setUp()
     errorI2Cdevice = true;
     return -3;
   }
+  return 0;
 }
 
 int16_t I2C::read16b(int fd, int buf_reg)
