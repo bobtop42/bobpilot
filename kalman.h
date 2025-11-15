@@ -1,7 +1,7 @@
 #ifndef KALMAN_H
 #define KALMAN_H
 #include "i2c.h"
-#include "MATHLIB.h"
+#include "plane.h"
 
 class KALMAN
 {
@@ -11,14 +11,14 @@ float X[6][1];
 KALMAN();
 
 float setUp();
-void xPred();
-void pPred();
-void kGain();
+void xPred(float (&X)[6][1]);
+void pPred(float (&P)[6][6]);
+void kGain(float (&K)[6][3]);
 void measureUpdate(PLANE* plane);
-void updateState();
-void updateP();
+void updateState(float (&X)[6][1]);
+void updateP(float (&P)[6][6]);
 void pushKalmandData(PLANE * plane);
-void loop(PLANE* plane);
+void loop(float (&X)[6][1], float (&P)[6][6], float (&K)[6][3], float (&Y)[6][1], PLANE* plane);
 
 private:
 enum{MK = 6, MX = 1, MB = 3};
@@ -44,7 +44,7 @@ const float dt[3][3] =
   {0.0f, 0.0f, 0.1f}
 };
 
-float P[6][6] = 
+const float P[6][6] = 
 {
   {0.0987f, 0.1381f, 0.1165f, 0.0888f, 0.0987f, 0.1381f,},
   {0.1381f, 0.1934f, 0.1632f, 0.1243f, 0.1381f, 0.1934f,},

@@ -1,23 +1,90 @@
-#include "MATHLIB.h"
+#include "plane.h"
 #include "realio.h"
-#include "simio.h"
-#include "replayio.h"
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <cstdlib>
 #include <tuple>
-#include <variant>
-
-
 
 int startUpInput()
 {
   int mode;
-  std::cout << "Choose bobpilot operating mode: \n Press 1 for real mode (realio) \n Press 2 for simulation mode (simio)\n Press 3 for replay mode (replayio)\n Press 4 to quit"
-  << std::endl;
+  std::cout << "Choose bobpilot operating mode: \n
+                Press 1 for real mode (realio) \n
+                Press 2 for simulation mode (simio)\n
+                Press 3 for replay mode (replayio)\n
+                Press 4 to quit"
+                << std::endl;
   std::cin >> mode;
   return mode;
+}
+
+auto setUp()
+{
+  bool isSetUp = false;
+  //QUIT quit;
+  while(!isSetUp || !SHUTDOWNERROR)
+    {
+      try
+        {
+          int mode = startUpInput();
+          if(mode > 4 || mode < 1)
+            throw mode;
+          switch (mode)
+            {
+              case 1:
+                {
+                  REAL realio;
+                  realio.setUp();
+                  if(!realio.setUp_)
+                    throw "realio";
+
+                  auto* io = &realio;
+                  bool* engaged = &realio.engaged_;
+                  return std::make_tuple(io, engaged, mode);
+                }
+              case 2:
+                {
+                  SIM simio;
+                  simio.setUp();
+                  if(!simio.setUp_)
+                    throw "simio";
+                  auto* io = &simio;
+                  bool* engaged = &simio.engaged_;
+                  return std::make_tuple(io, engaged, mode);
+                }
+              case 3:
+                {
+                  REPLAY replayio;
+                  replayio.setUp();
+                  if(!replayio.setUp_)
+                    throw "replayio";
+                  auto* io = &replayio;
+                  bool* engaged = &replayio.engaged_;
+                  return std::make_tuple(io, engaged, mode);
+                }
+              case 4:
+                {
+                  char quitYorN;
+                  std::cerr << "are you sure you want to quit? (y/n)." << std::endl;
+                  std::cin >> quitYorN;
+                  if(toupper(quitYorN) == 'Y') exit(0);
+                  else throw "NOQUIT";
+                  break;
+                }
+            }
+        }
+        catch(int modeError)
+        {
+          std::cerr << "ERROR: " << modeError << " is not a valid mode. \n Please try again." << std::endl;
+          break;
+        }
+        catch(const char* msg)
+        {
+          std::cerr << "ERROR: " << msg << " failed to set up. \n please try again." << std::endl;
+          break;
+        }
+    }
 }
 
 int cmdSetUp()
@@ -37,21 +104,12 @@ int cmdSetUp()
 int main(int argc, char**argv)
 {
   std::cout << "Launching bobpilot..." << std::endl;
-  int cmdSetUpCheck = cmdSetUp();
-  if(cmdSetUpCheck==-1)
-  {
-    std::cout<<"ERROR: cmdSetUp() failed. \n please try again." << std::endl;
-    SHUTDOWNERROR = true;
-    return -1;
-  }
+  auto[io, engaged, mode] = setUp();
 
   if(SHUTDOWNERROR)
-  {
-    std::cout<<"ERROR: SHUTDOWNERROR flag is true. \n shutting down now.\n please try again." << std::endl;
-  }
+    exit(0);
 
   bool notQuit = false;
-  bool isSetUp = false;
 
   /*
   this next loop loops through all io w/ noQuit loop running. a secondary loop can exit out of an io of a the users choice allowing the user to switch b/t io and not exiting the program as a whole. 'setUp''s  "engaged" keeps the current io running until the user decides to exit out of the io, or quit the program as a whole. everytime a user exits out of a io, the program will loop through the setUp() function again, allowing a io swap to occur, and letting the user exit altogether if they choose to do so.
@@ -60,49 +118,34 @@ int main(int argc, char**argv)
   //basic program loop function
   while(!notQuit)
     {
-      int mode = startUpInput();
       switch(mode)
         {
           case 1:
             {
-              REAL *realio = new REAL;
-              realio->setUp();
-              if(!realio->setUp_)
-                std::cout<<"ERROR: realio failed to start up. \n please try again." << std::endl;
-              while(realio->engaged_)
+              while(*engaged)
                 {
-                  realio->update();
+                  io->update();
                 }
-              delete realio;
               break;
             }
           case 2:
             {
-              SIM *simio = new SIM;
-              simio->setUp();
-              if(!simio->setUp_)
-                std::cout<<"ERROR: simio failed to start up. \n please try again." << std::endl;
-              while(simio->engaged_)
+              while(*engaged)
                 {
-                  simio->update();
+                  io->update();
                 }
-              delete simio;
               break;
             }
           case 3:
             {
-              REPLAY *replayio = new REPLAY;
-              replayio->setUp();
-              if(!replayio->setUp_)
-                std::cout<<"ERROR: replayio failed to start up. \n please try again." << std::endl;
-              while(replayio->engaged_)
+              while(*engaged)
                 {
-                  replayio->update();
+                  io->update();
                 }
-              delete replayio;
               break;
             }
         }
+      //add way to not do cmdSetUp() based on mode and a way to reverse it befor the program terminates
+      auto [io, engaged, mode] = setUp();
     }
-  return 0;
 };

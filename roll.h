@@ -2,6 +2,7 @@
 #define ROLL_H
 #include "pid.h"
 #include "MATHLIB.h"
+#include "plane.h"
 
 class ROLL
 {

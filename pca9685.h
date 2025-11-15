@@ -1,7 +1,9 @@
 #ifndef PCA_H
 #define PCA_H
+#include "plane.h"
 #include "MATHLIB.h"
-#include "MATHLIB.h"
+#include "ckalman.h"
+
 #define PCA_ADDRESS 0x40
 #define MODE1 0x00
 
