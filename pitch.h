@@ -2,7 +2,6 @@
 #define PITCH_H
 #include "pid.h"
 #include "MATHLIB.h"
-#include "plane.h"
 
 class PITCH
 {
