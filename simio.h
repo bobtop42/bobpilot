@@ -1,9 +1,7 @@
 #ifndef SIM_H
 #define SIM_H
 #include "atc.h"
-#include "ckalman.h"
 #include "gps.h"
-#include "hmc.h"
 #include "hold.h"
 #include "i2c.h"
 #include "kalman.h"
@@ -13,7 +11,6 @@
 #include "pca9685.h"
 #include "pid.h"
 #include "pitch.h"
-#include "plane.h"
 #include "roll.h"
 #include "screen.h"
 
