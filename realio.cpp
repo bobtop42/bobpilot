@@ -46,15 +46,15 @@ void REAL::setUp()
       if (setUp_)
       {
         setUpCounter = 0;
-        mpu.updatePA(plane);
-        gps.update(plane);
-        flightComputer.planeAngleFinder(plane->ckalman, plane, plane->hmc);
+        mpu.updatePA(&plane);
+        gps.update(&plane);
+        flightComputer.planeAngleFinder(&plane.ckalman, &plane, &plane.hmc);
         flightComputer.wayPointAngleFinder();
         roll.engaged();
         pitch.engaged();
-        roll.targetRoll(plane);
-        pitch.targetPitch(plane);
-        logger.log(plane);
+        roll.targetRoll(&plane);
+        pitch.targetPitch(&plane);
+        logger.log(&plane);
       }
     }
 }
@@ -87,8 +87,8 @@ void REAL::disengageAll()
 
 void REAL::targetAll()
 {
-  roll.targetRoll(plane);
-  pitch.targetPitch(plane);
+  roll.targetRoll(&plane);
+  pitch.targetPitch(&plane);
   atc.targetSpeed(plane);
 }
 
@@ -96,21 +96,21 @@ void REAL::update()
 {
   if(engaged_)
   {
-    mpu.updatePA(plane);
-    kalman.loop(plane->X, plane->P, plane->K, plane->Y, plane);
-    gps.update(plane);
+    mpu.updatePA(&plane);
+    kalman.loop(&plane);
+    gps.update(&plane);
     
-    flightComputer.planeAngleFinder(plane->ckalman, plane, plane->hmc);
+    flightComputer.planeAngleFinder(&plane.ckalman, &plane, &plane.hmc);
     flightComputer.wayPointAngleFinder();
 
-    pitch.update(plane);
-    roll.update(plane);
+    pitch.update(&plane);
+    roll.update(&plane);
     //atc.update(plane);
 
     //motors.setSpeed(atc.speed);
-    servos.updateServos(plane);
+    servos.updateServos(&plane);
 
-    logger.log(plane);
+    logger.log(&plane);
     
   }
 }
@@ -120,6 +120,7 @@ void REAL::checkLoopType()
   
 }
 
+/*
 void REAL::loop()
 {
   if(isRoute)
@@ -131,8 +132,8 @@ void REAL::loop()
     if(flightComputer.routeCompleted)
     {
       isRoute = false;
-      float Long = plane->loc.x;
-      float Lat = plane->loc.z;
+      float Long = plane.loc.x;
+      float Lat = plane.loc.z;
       float ln = longToFeet(Long, Lat);
       float lt = latToFeet(Lat);
       while(true)
@@ -146,4 +147,65 @@ void REAL::loop()
     }
   }
 }
+*/
 
+void REAL::loop()
+{
+  if(isRoute)
+  {
+    engageAll();
+    if(flightComputer.routeCompleted!=0x00)
+    {
+      while(flightComputer.routeCompleted!=0x00&&!SHUTDOWNERROR)
+        {
+          update();
+          if(controller.checkInput(false))
+          {
+            break;
+          }
+        }
+    };
+    if(flightComputer.routeCompleted==0x00)
+    {
+      isRoute = false;
+      secondaryLoop();
+    }
+  }
+  else
+  {
+    if(controller.humanControl())
+    {
+      controller.loop();
+    }
+  }
+}
+
+void REAL::secondaryLoop()
+{
+  while(true)
+    {
+      if(!controller.interupt()||!controller.exitAutoPilot()||!SHUTDOWNERROR)
+      {
+        if(engaged_)
+        {
+          mpu.updatePA(&plane);
+          kalman.loop(&plane);
+          gps.update(&plane);
+
+          holdComputer.holdCircle(50.0f, 150.0f, plane.loc.z, plane.loc.x, 0x01, &plane, &roll, &pitch, 10.0f);
+          atc.update;
+
+          motors.setSpeed(atc.speed);
+          servos.updateServos(&plane);
+          
+          logger.log(&plane); 
+          controller.update(false);
+        }
+      }
+      else
+      {
+        disengaged();
+        break;
+      }
+    }
+}
