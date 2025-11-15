@@ -145,6 +145,7 @@ bool GPS::configSerialPort(int fd)
   if(tcgetattr(fd, &tty)!=0)
   {
     perror("error 1 from tcgetattr");
+    close(fd);
     return false;
   }
   
@@ -175,6 +176,7 @@ bool GPS::configSerialPort(int fd)
   if(tcsetattr(fd, TCSANOW, &tty)!=0)
   {
     perror("error 2 from tcsetattr");
+    close(fd);
     return false;
   }
   close(fd);
