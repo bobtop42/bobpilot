@@ -2,10 +2,8 @@
 #define HOLD_H
 #include <cstdint>
 #include "MATHLIB.h"
-#include "realio.h"
 #include "pitch.h"
 #include "roll.h"
-#include "plane.h"
 
 class HOLD
 {
