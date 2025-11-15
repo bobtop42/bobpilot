@@ -1,19 +1,17 @@
 #include "gps.h"
+#include <tuple>
 
-void GPS::punctuationMarker(const std::string gpsmsg, int* puncLocation)
+void GPS::punctuationMarker(const std::string gpsmsg)
 {
   int i = 0;
   int pc = 1; //punctuation counter
-
+  
   while(puncLocation[0] != '$')
     {
       char ch = gpsmsg[i];
-      if(ch == '$')
-      {
-        puncLocation[0] = ch;
-      }
-      ++i;
+      ch == '$'? puncLocation[0] = ch:++i;
     }
+  ++i;
   while(gpsmsg[i] != '\r')
     {
       char ch = gpsmsg[i];
@@ -25,7 +23,7 @@ void GPS::punctuationMarker(const std::string gpsmsg, int* puncLocation)
     }
 }
 
-auto GPS::parser(const std::string gpsmsg, int* puncLocation)
+/*std::tuple<int, int, int, float, const char, float, const char, int, float> */ auto GPS::parser(const std::string gpsmsg, int* puncLocation)-> std::tuple<int,int,int,float,char,float,char,int,float>
 {
   //UTC itme
   //hours
@@ -41,7 +39,7 @@ auto GPS::parser(const std::string gpsmsg, int* puncLocation)
   float latMin = floatPositionReturn(gpsmsg, puncLocation, 4, 2);
   float gpsLatLocation = lat + latMin/60.0f;
 
-  const char latHemisphere = charPositionReturn(gpsmsg, puncLocation, 5);
+  char latHemisphere = charPositionReturn(gpsmsg, puncLocation, 5);
 
   //long in deg in DDDMM.MMMM format
   float Long = std::stoi(gpsmsg.substr(puncLocation[6]+1,3));
@@ -50,7 +48,7 @@ auto GPS::parser(const std::string gpsmsg, int* puncLocation)
 
   float gpsLongLocation = Long + LongMin/60.0f;
   
-  const char LongHemisphere = charPositionReturn(gpsmsg, puncLocation, 8);
+  char LongHemisphere = charPositionReturn(gpsmsg, puncLocation, 8);
 
   int gpsMeasureAccuracy = std::stoi(gpsmsg.substr(puncLocation[9]+1, 1));
 
@@ -79,7 +77,7 @@ auto GPS::parser(const std::string gpsmsg, int* puncLocation)
   return std::make_tuple(hrs, min, sec, gpsLatLocation, latHemisphere, gpsLongLocation, LongHemisphere, gpsMeasureAccuracy, gpsAlt);
 }
 
-void GPS::update(PLANE* plane, int* puncLocation)
+void GPS::update(PLANE* plane)
 {
   int fd = open ("/dec/ttyS0", O_RDWR|O_NOCTTY|O_SYNC);
 
@@ -100,7 +98,7 @@ void GPS::update(PLANE* plane, int* puncLocation)
   }
 
   char buf[256];
-  std::string sentence;
+  std::string sentence="";
 
   int n = read(fd, buf, sizeof(buf));
 
@@ -111,8 +109,7 @@ void GPS::update(PLANE* plane, int* puncLocation)
         char ch = buf[i];
         if(ch == '\n')
         {
-           update(plane, sentence, puncLocation);
-          sentence.clear();
+          break;
         }
         else if(ch!='\n')
         {
@@ -126,11 +123,13 @@ void GPS::update(PLANE* plane, int* puncLocation)
     SHUTDOWNERROR = true;
   }
   close(fd);
+  update(plane, sentence);
+  sentence.clear();
 }
 
-void GPS::update(PLANE* plane, const std::string gpsmsg, int* puncLocation)
+void GPS::update(PLANE* plane, const std::string gpsmsg)
 {
-  this->punctuationMarker(gpsmsg, puncLocation);
+  this->punctuationMarker(gpsmsg);
 
   auto[hrs, min, sec, lat, hem1, Long, hem2, Acc, Alt] = parser(gpsmsg, puncLocation);
 
@@ -146,6 +145,7 @@ bool GPS::configSerialPort(int fd)
   if(tcgetattr(fd, &tty)!=0)
   {
     perror("error 1 from tcgetattr");
+    close(fd);
     return false;
   }
   
@@ -176,7 +176,9 @@ bool GPS::configSerialPort(int fd)
   if(tcsetattr(fd, TCSANOW, &tty)!=0)
   {
     perror("error 2 from tcsetattr");
+    close(fd);
     return false;
   }
+  close(fd);
   return true;
 }

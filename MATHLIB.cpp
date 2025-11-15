@@ -1,6 +1,4 @@
 #include "MATHLIB.h"
-#include <string>
-#include <cmath>
 
 
 void flapPos::rad(flapPos& myFlapPos)

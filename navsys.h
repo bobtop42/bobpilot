@@ -1,6 +1,5 @@
 #include <cmath>
-#include "plane.h"
-#include "io.h"
+#include "MATHLIB.h"
 #ifndef NAVSYS_H
 #define NAVSYS_H
 
@@ -9,13 +8,12 @@
 class NAVSYS
 {
 public:
-PLANE *navsys = &plane;
 
 int npc = 0;
 
 const float PI = 3.14159f;
 
-void wayPointAngleFinder();
+void wayPointAngleFinder(PLANE* plane);
 void planeAngleFinder(CKALMAN* ckalman, PLANE* plane, HMC::HMC* hmc); //fill in with kalman filter stuff later
 void updateNpc(PLANE* plane);
 
@@ -28,7 +26,7 @@ int routeLen;
 float WPXYZ[14][3];
 
 void updateEP(PLANE& plane, float value);
-void updateAP(float value);
+void updateAP(PLANE& plane, float value);
 
 };
 

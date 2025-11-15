@@ -34,8 +34,8 @@ void ROLL::targetRoll(PLANE* plane)
 
 void ROLL::adjustAileron(float value, PLANE* plane)
 {
-    plane->ap.fL += value * static_cast<float>(RollDir) * -1.0f;
-    plane->ap.fR += value * static_cast<float>(RollDir) * -1.0f;
+    plane->ap.aileron.fL += value * static_cast<float>(RollDir) * -1.0f;
+    plane->ap.aileron.fR += value * static_cast<float>(RollDir) * -1.0f;
     plane->ap.aileronAdj(plane->ap);
 }
 

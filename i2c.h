@@ -1,7 +1,7 @@
 #ifndef I2C_H
 #define I2C_H
 #define DEVICE_ADDR 0x68
-#include "plane.h"
+#include "MATHLIB.h"
 #include "sys/ioctl.h"
 #include "sys/types.h"
 #include "linux/i2c-dev.h"
@@ -24,7 +24,7 @@ std::string dev = "/dev/i2c-1";
 
 I2C();
 
-void updatePA(int fd, PLANE*  plane);
+void updatePA(PLANE* plane);
 int setUp();
 
 private:

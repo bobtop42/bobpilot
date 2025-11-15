@@ -1,5 +1,5 @@
-#ifndef SIM_H
-#define SIM_H
+#ifndef REPLAY_H
+#define REPLAY_H
 #include "atc.h"
 #include "gps.h"
 #include "hold.h"
@@ -14,7 +14,7 @@
 #include "roll.h"
 #include "screen.h"
 
-class SIM
+class REPLAY
 {
 private:
 std::string filename = "logTemp.txt";
@@ -28,7 +28,7 @@ PITCH pitch{0.0f, 0.0f, false};
 ROLL roll{0.0f, 0.0f, false};
 //ATC atc{0.0f, 0.0f, false};
 
-SIM();
+REPLAY();
 
 I2C mpu;
 GPS gps;

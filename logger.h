@@ -1,13 +1,13 @@
 #ifndef LOGGER_H
 #define LOGGER_H
-#include "plane.h"
+#include "MATHLIB.h"
 #include "io.h"
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <chrono>
-#include<ctime>
-#include<iomanip>
+#include <ctime>
+#include <iomanip>
 #include <tuple>
 
 class LOGGER

@@ -1,4 +1,4 @@
-#include "hmc.h"
+#include "MATHLIB.h"
 
 using namespace HMC;
 
