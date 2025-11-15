@@ -7,15 +7,15 @@
 NAVSYS::NAVSYS():npc(0), routeLen(14) {};
 
 //wayPointAngleFinder has been updated! Nww completely branchless. yay. 
-void NAVSYS::wayPointAngleFinder()
+void NAVSYS::wayPointAngleFinder(PLANE* plane)
 {
-  float wx  = plane.WPXYZ[plane.npc][0];
-  float wy = plane.WPXYZ[plane.npc][1];
-  float wz = plane.WPXYZ[plane.npc][2];
+  float wx = plane->WPXYZ[plane->npc][0];
+  float wy = plane->WPXYZ[plane->npc][1];
+  float wz = plane->WPXYZ[plane->npc][2];
 
-  float px = plane.loc.x;
-  float py = plane.loc.y;
-  float pz = plane.loc.z;
+  float px = plane->loc.x;
+  float py = plane->loc.y;
+  float pz = plane->loc.z;
 
   wx = longToFeet(wx, wz); 
   px = longToFeet(px, pz);
@@ -25,8 +25,8 @@ void NAVSYS::wayPointAngleFinder()
 
   wy-=py; wx-=px; wz-=pz;
 
-  plane.WPA.roll = fabs(atan2(wx,wz)) + ((wx/fabs(wx) - 1.0f) * -1.570795f) + ((wz/fabs(wz) - 1.0f) * -0.7853795);
-  plane.WPA.pitch = atan2(wy, (sqrt(wx * wx + wz * wz)));
+  plane->WPA.roll = fabs(atan2(wx,wz)) + ((wx/fabs(wx) - 1.0f) * -1.570795f) + ((wz/fabs(wz) - 1.0f) * -0.7853795);
+  plane->WPA.pitch = atan2(wy, (sqrt(wx * wx + wz * wz)));
 };
 
 //fill in wiht kalman filter stuff later: maybevoid NAVSYS::planeAngleFinder(KALMAN* kalman)???
@@ -52,7 +52,7 @@ void NAVSYS::updateEP(PLANE& plane, float value)
   plane.ep.elevatorAdj(plane.ep);
 }
 
-void NAVSYS::updateAP(float value)
+void NAVSYS::updateAP(PLANE& plane, float value)
 {
   if(value < PI && value > 0.0f)
   {
