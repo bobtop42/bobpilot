@@ -141,6 +141,12 @@ auto LOGGER::fillPlaneData(const std::string data, int *logPos, PLANE *plane)
   plane->npc = npc;
 
   //work on this later
-  plane->time.updateTime(UTChrs, UTCmin, UTCsec, plane);
+  plane->time.prev_hrs_ = plane->time.hrs_;
+  plane->time.prev_min_ = plane->time.min_;
+  plane->time.prev_sec_ = plane->time.sec_;
+
+  plane->time.hrs_ = UTChrs;
+  plane->time.min_ = UTCmin;
+  plane->time.sec_ = UTCsec;
   
 }
