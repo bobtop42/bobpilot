@@ -27,9 +27,8 @@ void REAL::setUp()
 
           logger.setFilename(".txt");
 
-          //work on M2H(motors) set up sequence later
+          //work on this later
           //uint16_t setUpM2H = motors.setUp();
-          //int motorSetUp = motors.command()
 
           setUp_ = true;
 
@@ -105,9 +104,9 @@ void REAL::update()
 
     pitch.update(&plane);
     roll.update(&plane);
-    //atc.update(plane);
+    atc.update(plane);
 
-    //motors.setSpeed(atc.speed);
+    motors.setSpeed(atc.speed);
     servos.updateServos(&plane);
 
     logger.log(&plane);
