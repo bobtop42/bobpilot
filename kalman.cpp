@@ -1,7 +1,7 @@
 #include "kalman.h"
 #include "io.h"
 
-void KALMAN::xPred()
+void KALMAN::xPred(float (&X)[6][1])
 {
   float AX[6];
   float BU [6];
@@ -22,7 +22,7 @@ void KALMAN::xPred()
     }
 }
 
-void KALMAN::pPred()
+void KALMAN::pPred(float (&P)[6][6])
 {
   for(int i=0; i<3; ++i)
     {
@@ -36,7 +36,7 @@ void KALMAN::pPred()
     }
 }
 
-void KALMAN::kGain()
+void KALMAN::kGain(float (&K)[6][3])
 {
   float temp[6][6];
 
@@ -67,7 +67,7 @@ void KALMAN::measureUpdate(PLANE* plane)
   Y[5][0] = plane->pAngle[2][2];
 }
 
-void KALMAN::updateState()
+void KALMAN::updateState(float (&X)[6][1])
 {
   int temp[6];
 
@@ -88,7 +88,7 @@ void KALMAN::updateState()
     }
 }
 
-void KALMAN::updateP()
+void KALMAN::updateP(float (&P)[6][6])
 {
   for(int i=0; i<3; ++i)
     {
@@ -112,13 +112,13 @@ void KALMAN::pushKalmandData(PLANE* plane)
   plane->pAngle[2][2] = Y[5][0];
 }
 
-void KALMAN::loop(PLANE* plane)
+void KALMAN::loop(float (&X)[6][1], float (&P)[6][6], float (&K)[6][3], float (&Y)[6][1], PLANE* plane)
 {
-  xPred();
-  pPred();
-  kGain();
+  xPred(X);
+  pPred(P);
+  kGain(K);
   measureUpdate(plane);
-  updateState();
-  updateP(); 
+  updateState(X);
+  updateP(P); 
   pushKalmandData(plane);
 }

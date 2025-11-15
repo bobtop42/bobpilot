@@ -1,7 +1,9 @@
 #ifndef REAL_H
 #define REAL_H
 #include "atc.h"
+#include "ckalman.h"
 #include "gps.h"
+#include "hmc.h"
 #include "hold.h"
 #include "i2c.h"
 #include "kalman.h"
@@ -11,6 +13,7 @@
 #include "pca9685.h"
 #include "pid.h"
 #include "pitch.h"
+#include "plane.h"
 #include "roll.h"
 
 class REAL
@@ -43,7 +46,6 @@ void printStatus();
 void setUp();
 void update();
 void loop();
-void secondaryLoop();
 
 void targetAll();
 
