@@ -1,6 +1,5 @@
 #include "logger.h"
 
-/* WORK ON THIS ONE LATER
 void LOGGER::setFilename(std::string filetype)
 {
   auto now = std::chrono::system_clock::now();
@@ -10,7 +9,7 @@ void LOGGER::setFilename(std::string filetype)
 
   std::string time = static_cast<std::string>(std::put_time(&local_tm, "%Y-%m-%d_%H-%M-%S") + filetype);
 }
-*/
+
 
 void LOGGER::log(PLANE* plane)
 {
