@@ -86,18 +86,18 @@ void I2C::updatePA(PLANE* plane)
     int16_t gz = read16b(fd, 0x47);
 
     //accel dat -> m/s^2
-    plane->pAngle[0][0] = ax / 16384.0f * 9.80665f;
-    plane->pAngle[0][1] = ay / 16384.0f * 9.80665f;
-    plane->pAngle[0][2] = az / 16384.0f * 9.80665f;
+    plane->pAngle[0][0] = (float) ax / 16384.0f * 9.80665f;
+    plane->pAngle[0][1] = (float) ay / 16384.0f * 9.80665f;
+    plane->pAngle[0][2] = (float) az / 16384.0f * 9.80665f;
 
     //temp and time data
-    plane->pAngle[1][0] = temp / 340.0f + 36.53f;
+    plane->pAngle[1][0] = (float) temp / 340.0f + 36.53f;
     plane->pAngle[1][2] = plane->pAngle[1][1];
 
     //gyro data -> rad/s
-    plane->pAngle[2][0] = gx / 131.0f;
-    plane->pAngle[2][1] = gy / 131.0f;
-    plane->pAngle[2][2] = gz / 131.0f;
+    plane->pAngle[2][0] = (float) gx / 131.0f;
+    plane->pAngle[2][1] = (float) gy / 131.0f;
+    plane->pAngle[2][2] = (float) gz / 131.0f;
 
     plane->pAngle[1][1] = static_cast<float>(ms_count);
   }
