@@ -56,13 +56,9 @@ int round(float value)//check the if statements on this
 {
   value += 0.01f;
   float temp = fmod(value, 0.1f);
-  if(temp > 0.05f)
-    value+=0.1f;
-  temp= fmod(value,1.0f);
-  if(temp >= 0.5f)
-    return (static_cast<int>(value+1.0f));
-  else
-    return (static_cast<int>(value));
+  value += (static_cast<float>(!static_cast<int>(temp+0.9999999f))*0.1f);
+  temp= fmod(value, 1.0f);
+  return static_cast<int>(value+(static_cast<float>(static_cast<int>(temp+0.5f))*1.0f));
 }
 
 uint16_t radianToFeet(float rad)
