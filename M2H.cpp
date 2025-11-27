@@ -4,7 +4,7 @@
   
 void M2H::M2H::setAllSpeeds(uint16_t speed, uint8_t* command)
 {
-  command[0] = 0xE1;
+  command[0] = 0xE2;
   command[1] = speed & 0x7F;
   command[2] = (speed >> 7) & 0x7F;
 };
@@ -93,7 +93,7 @@ void M2H::M2H::errorResponse(uint8_t error, uint8_t* command)
 
 void M2H::M2H::setSpeed(uint16_t speed, uint8_t motor, uint8_t* command)
 {
-  command[0] = 0xD1;
+  command[0] = 0xD2;
   command[1] = motor & 0x03;
   command[2] = speed & 0x7F;
   command[3] = (speed>>7) & 0x7F;
