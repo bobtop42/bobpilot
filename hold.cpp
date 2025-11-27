@@ -19,14 +19,16 @@ void HOLD::prePosCalc(float radiusft, float alt, float lat, float lng, int8_t cl
   isAdd += static_cast<uint8_t>(pz + 1.0f)<<1; //test again
   isAdd += static_cast<uint8_t>(clockWise + 1.0f);
 
-  isAdd <<= (isAdd - 2);
+  isAdd <<= (isAdd - 2) + (2 -isAdd* (!!((isAdd-2)&0x80)));
   isAdd += 0x04;
   isAdd ^= 0b00010101;
   isAdd <<= (isAdd & 0x02);
   isAdd ^= (isAdd & 0x14);
+  isAdd <<= ((isAdd & 0x20)>>5)*5;
+  isAdd = !!(isAdd>>1);
 
-  tx += radiusft * (static_cast<float>(!!(-1 + isX))) * (static_cast<float>((!!isAdd)<<1)-1.0f) * -1.0f;
-  tx += radiusft * (static_cast<float>(!!(1 + isX))) * (static_cast<float>((!!isAdd)<<1)-1.0f) * -1.0f;
+  tx += radiusft * (static_cast<float>(((1-isX)>>1)*(static_cast<int>(isAdd<<1)-1)*-1));
+  tz += radiusft * (static_cast<float>(((1+isX)>>1)*(static_cast<int>(isAdd<<1)-1)*-1));
 
   px = plane->loc.x; py = plane->loc.y; pz = plane->loc.z;
   px = longToFeet(px, pz); pz = latToFeet(pz);
@@ -46,7 +48,7 @@ void HOLD::targetHeading(PLANE* plane, PITCH* pitch, ROLL* roll)
 
 void HOLD::holdAlt(float altft, PLANE* plane)
 {
-  px = plane->loc.x; py = plane->loc.y; plane->loc.z;
+  px = plane->loc.x; py = plane->loc.y; pz = plane->loc.z;
   px = longToFeet(px, pz);
   pz = latToFeet(pz);
 
