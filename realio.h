@@ -25,7 +25,7 @@ PLANE plane;
 
 PITCH pitch{0.0f, 0.0f, false};
 ROLL roll{0.0f, 0.0f, false};
-//ATC atc{0.0f, 0.0f, false};
+ATC atc{0x00, false};
 
 REAL();
 
