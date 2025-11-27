@@ -6,26 +6,26 @@
 class ATC
 {
 public:
-int8_t speedAdj;
+int8_t atcAdj;
 /*
 if plane is at target speed speedAdj -> 0x00
 if plane is going slower than target speed speedAdj -> 0x01
 if plane is going faster than target speed speedAdj -> 0xFF
 */
-uint16_t speed;
 
-void targetSpeed(float value, PLANE* plane);// have target speed update uint16_t speed and maybe plane speed too
-void targetSpeed(PLANE* plane); //same as targetSpeed above
+void targetSpeed(float value);// have target speed update uint16_t speed and maybe plane speed too
+void setAtcMod(PLANE* plane); //same as targetSpeed above
 void engaged();
 void disengaged();
-float update(PLANE* plane);
-void setUp();
-void adjustThrottle(float value, PLANE* plane);
+void update(PLANE* plane);
 
-ATC();
+ATC(int16_t speed, bool engaged);
+
+int16_t speed_;
 
 private:
 bool engaged_;
+float atcMod_ = 0.0f;
 
 };
 
