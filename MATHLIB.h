@@ -20,32 +20,7 @@ float PI = 3.14159f;
 //READ ME: num of WP vals set in main?
 //14 for rn tho
 
-/*
-struct PlaneObj
-{
-  float planePos[6][3]
-  {
-    {7.0f,1.0f,4.0f}, //bottom fold, point 0, connects with points: 2,3,4
-    {7.0f,2.0f,1.0f}, //left wing tip, point 1, connects with points: 2,3
-    {7.0f,2.0f,3.5f}, //left top fold, point 2, connects with points: 0,1,3
-    {1.0f,2.0f,4.0f}, //nose, point 3, connects with points: 1,2,4,5
-    {7.0f,2.0f,4.5f}, //right top fold, point 4, connects with points: 0,3,5
-    {7.0f,2.0f,7.0f} //right wing tip, point 5, connects with points: 3,4
-  };
-  int planeScreenPos[6][2];
 
-  void undatePlaneScreenPos(int posNorMul, int x, int y)
-  {
-    
-  }
-
-  void drawPlane(SDL_Renderer* renderer)
-  {
-      SDL_Set_Render_Draw_Color(renderer,89,59,255,1);
-    SDL_Render_Draw_Line(renderer, )
-  }
-};
-*/
 
 float floatPositionReturn(const std::string msg, int* logPos, int num);
 
