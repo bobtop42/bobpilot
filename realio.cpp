@@ -28,7 +28,7 @@ void REAL::setUp()
           logger.setFilename(".txt");
 
           //work on this later
-          //uint16_t setUpM2H = motors.setUp();
+          uint16_t setUpM2H = motors.setUp();
 
           setUp_ = true;
 
@@ -48,7 +48,7 @@ void REAL::setUp()
         mpu.updatePA(&plane);
         gps.update(&plane);
         flightComputer.planeAngleFinder(&plane.ckalman, &plane, &plane.hmc);
-        flightComputer.wayPointAngleFinder();
+        flightComputer.wayPointAngleFinder(&plane);
         roll.engaged();
         pitch.engaged();
         roll.targetRoll(&plane);
@@ -88,7 +88,6 @@ void REAL::targetAll()
 {
   roll.targetRoll(&plane);
   pitch.targetPitch(&plane);
-  atc.targetSpeed(plane);
 }
 
 void REAL::update()
@@ -100,19 +99,53 @@ void REAL::update()
     gps.update(&plane);
     
     flightComputer.planeAngleFinder(&plane.ckalman, &plane, &plane.hmc);
-    flightComputer.wayPointAngleFinder();
+    flightComputer.wayPointAngleFinder(&plane);
 
     pitch.update(&plane);
     roll.update(&plane);
-    atc.update(plane);
+    atc.update(&plane);
 
-    motors.setSpeed(atc.speed);
+    motors.setSpeed(atc.speed_);
     servos.updateServos(&plane);
 
     logger.log(&plane);
     
   }
 }
+
+void REAL::checkLoopType()
+{
+  
+}
+
+/*
+void REAL::loop()
+{
+  if(isRoute)
+  {
+    while(!flightComputer.routeCompleted)
+    {
+      update();
+    }
+    if(flightComputer.routeCompleted)
+    {
+      isRoute = false;
+      float Long = plane.loc.x;
+      float Lat = plane.loc.z;
+      float ln = longToFeet(Long, Lat);
+      float lt = latToFeet(Lat);
+      while(true)
+        {
+          if(!controller.interupt())
+          {
+            holdComputer.holdCircle(50.0f, 150, Lat, Long, 0x01, plane, roll, pitch, 10.0f);
+          }
+          else{break;}
+        }
+    }
+  }
+}
+*/
 
 void REAL::loop()
 {
@@ -158,9 +191,9 @@ void REAL::secondaryLoop()
           gps.update(&plane);
 
           holdComputer.holdCircle(50.0f, 150.0f, plane.loc.z, plane.loc.x, 0x01, &plane, &roll, &pitch, 10.0f);
-          atc.update;
+          atc.update(&plane);
 
-          motors.setSpeed(atc.speed);
+          motors.setSpeed(atc.speed_);
           servos.updateServos(&plane);
           
           logger.log(&plane); 
