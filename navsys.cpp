@@ -54,20 +54,10 @@ void NAVSYS::updateEP(PLANE& plane, float value)
 
 void NAVSYS::updateAP(PLANE& plane, float value)
 {
-  if(value < PI && value > 0.0f)
-  {
-    plane.ap.aileron.fL -= value;
-    plane.ap.aileron.fR += value;
-    return;
-  }
-  else
-  {
-    plane.ap.aileron.fL += value;
-    plane.ap.aileron.fR -= value;
-  }
-  
+  int addOrSub = (!!static_cast<int>(value+1.0f)<<1)-1;
+  plane.ap.aileron.fL += value * static_cast<float>(addOrSub*1.0f);
+  plane.ap.aileron.fR = plane.ap.aileron.fL * -1.0f;
   plane.ap.aileronAdj(plane.ap);
-  
 }
 
 void NAVSYS::updateNpc(PLANE* plane)
