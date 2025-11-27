@@ -1,8 +1,5 @@
 # bobpilot
-autopilot iteration
----
-
->>>MAIN BRANHC FILE ORGANAZATION IS BEIN GREDON ERIGHT NOW DUE TO MERGIN GAN DFILE ISSUES<<<
+autopilot pilot
 
 ## 💌 A Note from the Author
 This project is licensed under the [MIT License](LICENSE), so you’re free to use it in any way you see fit.
