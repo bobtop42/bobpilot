@@ -66,9 +66,6 @@ int cycle(uint16_t command[3])
 
 double heading(PLANE* plane)
 {
-  //float x = plane->pAngle[0][0];
-  //float y = plane->pAngle[0][1];
-  //float z = plane->pAngle[0][2];
 
   float pitch = plane->PA.pitch;
   float roll = plane->PA.roll;
@@ -88,4 +85,3 @@ double heading(PLANE* plane)
 
   return atan2(Yh, Xh);
 }
-
