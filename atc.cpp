@@ -1,6 +1,6 @@
 #include "atc.h"
 
-ATC::ATC(): engaged_(false) {}
+ATC::ATC(int16_t speed, bool engaged): speed_(speed), engaged_(false) {}
 
 void ATC::engaged()
 {
@@ -12,25 +12,26 @@ void ATC::disengaged()
   engaged_ = false;
 }
 
-void ATC::targetSpeed(float value, PLANE* plane)
+void ATC::setAtcMod(PLANE* plane)
 {
-  targetSpeed_ = value; // work on this later
-  speedAdj = 0xff;// fix later
-  
+  /*atcMod_ : 0.5 = level flight, 1.0 full throttle, 0.0 no throttle*/
+  double angleMod = ((double)plane->pAngle[2][0]+(double)plane->pAngle[2][2])/2.0f;
+  atcMod_ = sqrt(fabs(0.57735026918075689*tan(angleMod)))/2.0f;
+  float posOrNeg = static_cast<float>((!!static_cast<int>(atcMod_+1.0f)<<2)-2);
+  atcMod_*=posOrNeg;
 }
 
-void ATC::targetSpeed(PLANE* plane)
+void ATC::targetSpeed(float value)
 {
-  
+  /*atcMod_ : 0.5 = level flight, 1.0 full throttle, 0.0 no throttle*/
+  speed_ = static_cast<int16_t>(800.0f+(value*800.0f));
 }
 
 void ATC::update(PLANE* plane)
 {
   if(engaged_)
   {
-    targetSpeed(plane);
-    float pidAdj = pid.calculate(targetSpeed_);
-    //finish up
+    setAtcMod(plane);
+    targetSpeed(atcMod_);
   }
 }
-
