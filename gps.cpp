@@ -6,20 +6,18 @@ void GPS::punctuationMarker(const std::string gpsmsg)
   int i = 0;
   int pc = 1; //punctuation counter
   
-  while(puncLocation[0] != '$')
+  while(true)
     {
-      char ch = gpsmsg[i];
-      ch == '$'? puncLocation[0] = ch:++i;
+      if(gpsmsg[i]== '$'){puncLocation[0]=i; break;}
+      i++;
     }
-  ++i;
-  while(gpsmsg[i] != '\r')
+  
+  i++;
+  
+  while(gpsmsg[i]!='\r')
     {
-      char ch = gpsmsg[i];
-      if(ispunct(ch))
-      {
-        puncLocation[pc] = ch;
-      }
-      ++i;
+      if(ispunct(gpsmsg[i])){puncLocation[pc]=i; pc++;}
+      i++;
     }
 }
 
