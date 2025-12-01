@@ -15,6 +15,21 @@ void LOGGER::setFilename(std::string filetype)
 }
 
 
+void LOGGER::setFilename(std::string filetype)
+{
+  auto now = std::chrono::system_clock::now();
+  std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+
+  std::tm local_tm = *std::localtime(&now_time);
+
+  std::stringstream ss;
+  ss << std::put_time(&local_tm, "%Y-%m-%d_%H-%M-%S");
+  std::string formatted_time = ss.str();
+  
+  std::string filename = formatted_time + filetype;
+}
+
+
 void LOGGER::log(PLANE* plane)
 {
   std::ofstream o(this->file);
@@ -48,11 +63,9 @@ void LOGGER::log(PLANE* plane)
   //hemisphere data
   o<<"-"<<plane->hemisphere.NS<<"\t"<<plane->hemisphere.EW<<std::endl;
   o<<"\v\v"<<std::endl;
-  //speed data
-  //airspeed
-  /*
-  o<<plane-> FINISH PLANE!!!!!
-  */
+
+  o.close();
+  //finish logging ATC, plane->AC[3], npc data, for this and parse log from an actual file. open the file, read the data, and parse it.
 }
 
 auto LOGGER::parseLog(const std::string data, int logPos[67])
