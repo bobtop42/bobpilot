@@ -17,6 +17,10 @@ void targetSpeed(float value);// have target speed update uint16_t speed and may
 void setAtcMod(PLANE* plane); //same as targetSpeed above
 void engaged();
 void disengaged();
+
+uint16_t returnSpeed();
+float returnAtcMod();
+
 void update(PLANE* plane);
 
 ATC(int16_t speed, bool engaged);
