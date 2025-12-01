@@ -12,6 +12,16 @@ void ATC::disengaged()
   engaged_ = false;
 }
 
+uint16_t ATC::returnSpeed()
+{
+  return speed_;
+}
+
+float ATC::returnAtcMod()
+{
+  return atcMod_;
+}
+
 void ATC::setAtcMod(PLANE* plane)
 {
   /*atcMod_ : 0.5 = level flight, 1.0 full throttle, 0.0 no throttle*/
