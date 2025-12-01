@@ -7,7 +7,11 @@ void LOGGER::setFilename(std::string filetype)
 
   std::tm local_tm = *std::localtime(&now_time);
 
-  std::string time = static_cast<std::string>(std::put_time(&local_tm, "%Y-%m-%d_%H-%M-%S") + filetype);
+  std::stringstream ss;
+  ss << std::put_time(&local_tm, "%Y-%m-%d_%H-%M-%S");
+  std::string formatted_time = ss.str();
+  
+  std::string filename = formatted_time + filetype;
 }
 
 
