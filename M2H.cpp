@@ -269,6 +269,7 @@ int M2H::M2H::Write(uint8_t * msg, uint8_t& len, uint8_t motor, bool& crc)
     close(fd); 
     return -100;
   }
+  return 0;
 } // NOTE:make sure everything returns for every path
 
 int M2H::M2H::command(uint16_t command, uint16_t value, uint8_t motor)
@@ -414,6 +415,7 @@ int M2H::M2H::command(uint16_t command, uint16_t value, uint8_t motor)
           return -100;
         }
     }
+  return 0;
 }
 
 uint16_t M2H::M2H::setUp()
