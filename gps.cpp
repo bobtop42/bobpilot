@@ -102,7 +102,7 @@ void GPS::update(PLANE* plane)
 
   if(n>0)
   {
-     for(auto i:buf)
+     for(int i:buf)
       {
         char ch = buf[i];
         if(ch == '\n')
