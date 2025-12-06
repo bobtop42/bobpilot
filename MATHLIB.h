@@ -102,7 +102,18 @@ return *this;
 void rad(flapPos& myFlapPos);
 };
 
+struct FLAP
+{
+flapPos flap;
 
+/*this func below calculates wether the flap pos is more than +/- 60 deg(in rad) and if the flap is not >60 t = 1, else if  flap >=60 t=0. then either zeros out the flap pos and adj. to */
+void flapAdj(FLAP f)
+{
+  float t1 = fabs(f.flap.fL)/(f.flap.fL + static_cast<float>(!static_cast<int>(fabs(f.flap.fL)+0.9999999f)));
+  float t2 = static_cast<float>(!static_cast<int>(fabs(f.flap.fL)/1.047197f));
+  f.flap.fR = f.flap.fL = (f.flap.fL * t2) + (1.047197f * ((t2 - 1.0f) * -1.0f * t1 ));
+}
+};
 
 /*
 NOTE: 
@@ -158,6 +169,7 @@ int prev_hrs_;
 int prev_min_;
 int prev_sec_;
 };
+
 bool SHUTDOWNERROR = false;
 
 void shutDownErrorCheck()
@@ -228,8 +240,8 @@ float WPXYZ[14][3];
 angle PA;
 float pAngle[3][3];
 
-EP ep;
-AP ap;
+FLAP ep;
+FLAP ap;
 //aspeed 
 float speed;
 Time time;
