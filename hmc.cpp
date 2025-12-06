@@ -4,7 +4,6 @@ using namespace HMC;
 
 int write(int fd, uint8_t* command)
 {
-  int len = sizeof(command);
 
   if(write(fd, command, sizeof(command))!= 0)
   {
@@ -48,6 +47,11 @@ int cycle(uint16_t command[3])
   }
 
   int ConfigWrite = config(fd);
+  if(ConfigWrite!=0)
+  {
+    close(fd);
+    return -1;
+  }
   uint8_t buf[6];
   buf[0] = 0x3D; buf[1] = 0x06;
   if(read(fd, buf, sizeof(buf))!=0)
@@ -85,3 +89,4 @@ double heading(PLANE* plane)
 
   return atan2(Yh, Xh);
 }
+
