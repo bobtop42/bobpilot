@@ -6,7 +6,6 @@
 #include "i2c.h"
 #include "kalman.h"
 #include "logger.h"
-#include "M2H.h"
 #include "MATHLIB.h"
 #include "pca9685.h"
 #include "pid.h"
@@ -33,7 +32,6 @@ SIM();
 I2C mpu;
 GPS gps;
 PCA servos;
-M2H motors;
 
 LOGGER logger{filename};
 KALMAN kalman;
