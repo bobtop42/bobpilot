@@ -8,9 +8,7 @@ float kp_;
 float ki_;
 float kd_;
 int period = 0;
-float target;
 
-float temp;
 float error = 0.0f;
 float cum_error = 0.0f;
 float prev_error = 0.0f;
