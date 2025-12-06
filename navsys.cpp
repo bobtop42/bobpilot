@@ -47,17 +47,15 @@ void NAVSYS::planeAngleFinder(CKALMAN* ckalman, PLANE* plane, HMC::HMC* hmc)
 
 void NAVSYS::updateEP(PLANE& plane, float value)
 {
-  plane.ep.elevator.fL += value;
-  plane.ep.elevator.fR += value;
-  plane.ep.elevatorAdj(plane.ep);
+  plane.ep.flap.fR = plane.ep.flap.fL += value;
+  plane.ep.flapAdj(plane.ep);
 }
 
 void NAVSYS::updateAP(PLANE& plane, float value)
 {
   int addOrSub = (!!static_cast<int>(value+1.0f)<<1)-1;
-  plane.ap.aileron.fL += value * static_cast<float>(addOrSub*1.0f);
-  plane.ap.aileron.fR = plane.ap.aileron.fL * -1.0f;
-  plane.ap.aileronAdj(plane.ap);
+  plane.ap.flap.fR = plane.ap.flap.fL += value * static_cast<float>(addOrSub*1.0f);
+  plane.ap.flapAdj(plane.ap);
 }
 
 void NAVSYS::updateNpc(PLANE* plane)
