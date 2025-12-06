@@ -94,7 +94,7 @@ void I2C::updatePA(PLANE* plane)
     plane->pAngle[1][0] = (float) temp / 340.0f + 36.53f;
     plane->pAngle[1][2] = plane->pAngle[1][1];
 
-    //gyro data -> rad/s
+    //gyro data -> rad/s update with degree setting * deg/seconds / 32767 for gyro degrees/second. then convert to rads
     plane->pAngle[2][0] = (float) gx / 131.0f;
     plane->pAngle[2][1] = (float) gy / 131.0f;
     plane->pAngle[2][2] = (float) gz / 131.0f;
