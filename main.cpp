@@ -51,7 +51,7 @@ int main(int argc, char**argv)
   }
 
   bool notQuit = false;
-  bool isSetUp = false;
+
 
   /*
   this next loop loops through all io w/ noQuit loop running. a secondary loop can exit out of an io of a the users choice allowing the user to switch b/t io and not exiting the program as a whole. 'setUp''s  "engaged" keeps the current io running until the user decides to exit out of the io, or quit the program as a whole. everytime a user exits out of a io, the program will loop through the setUp() function again, allowing a io swap to occur, and letting the user exit altogether if they choose to do so.
