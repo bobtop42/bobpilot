@@ -28,12 +28,11 @@ void PITCH::targetPitch(PLANE* plane)
 
 void PITCH::adjustElevator(float value, PLANE* plane)
 {
-  plane->ep.elevator.fL += value * static_cast<float>(PitchDir);
-  plane->ep.elevator.fR += value * static_cast<float>(PitchDir);
-  plane->ep.elevatorAdj(plane->ep);
+  plane->ep.flap.fR = plane->ep.flap.fL += value * static_cast<float>(PitchDir);
+  plane->ep.flapAdj(plane->ep);
 }
 
-float PITCH::update(PLANE* plane)
+void PITCH::update(PLANE* plane)
 {
   if(engaged_)
   {
