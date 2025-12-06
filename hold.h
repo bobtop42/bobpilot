@@ -26,8 +26,7 @@ float px; float tx;
 float py; float ty;
 float pz; float tz;
 
-float Wpitch; float Ppitch;
-float Wroll; float Proll;
+float Proll;
 };
 
 #endif
