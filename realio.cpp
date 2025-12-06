@@ -11,11 +11,6 @@ void REAL::setUp()
             std::cerr << "retrying setup..." << std::endl;
           }
 
-          int mpuCheck = mpu.setUp();
-
-          if(mpuCheck != 0)
-            throw "ERROR: MPU6050 failed to set up";
-
           int setUpFd = open("/dev/ttyS0", O_RDWR|O_NOCTTY|O_SYNC);
           if(setUpFd != 0)
             throw "ERROR: failed to open fd to set up GPS";
@@ -26,9 +21,6 @@ void REAL::setUp()
             throw "ERROR: GPS failed to set up";
 
           logger.setFilename(".txt");
-
-          //work on this later
-          uint16_t setUpM2H = motors.setUp();
 
           setUp_ = true;
 
@@ -105,7 +97,6 @@ void REAL::update()
     roll.update(&plane);
     atc.update(&plane);
 
-    motors.setSpeed(atc.speed_);
     servos.updateServos(&plane);
 
     logger.log(&plane);
@@ -192,8 +183,7 @@ void REAL::secondaryLoop()
 
           holdComputer.holdCircle(50.0f, 150.0f, plane.loc.z, plane.loc.x, 0x01, &plane, &roll, &pitch, 10.0f);
           atc.update(&plane);
-
-          motors.setSpeed(atc.speed_);
+          
           servos.updateServos(&plane);
           
           logger.log(&plane); 
