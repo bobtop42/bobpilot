@@ -4,6 +4,7 @@
 #include "io.h"
 #include <iostream>
 #include <fstream>
+#include <ostream>
 #include <string>
 #include <chrono>
 #include <ctime>
