@@ -1,275 +1,84 @@
-#ifndef MATHLIB_H
-#define MATHLIB_H
-#include "stdint.h"
-#include <ios>
-#include <cmath>
-#include <iostream>
-#include <string>
-#include <unistd.h>
-#include <fcntl.h>
-#include "sys/ioctl.h"
-#include "sys/types.h"
-#include "linux/i2c-dev.h"
-#include "stdint.h"
-#include <ctime>                
-#include <cstdint>
-//#include "SDL.h"
+#include "navsys.h"
+//#include "kalman.h"
 
-float PI = 3.14159f;
-
-//READ ME: num of WP vals set in main?
-//14 for rn tho
+//READ ME: num of wp vals set in main? 14 for rn tho
 
 
+NAVSYS::NAVSYS():npc(0), routeLen(14) {};
 
-float floatPositionReturn(const std::string msg, int* logPos, int num);
-
-float floatPositionReturn(const std::string msg, int* logPos, int num, int highStart);
-
-int intPositionReturn(const std::string msg, int* logPos, int num);
-
-char charPositionReturn(const std::string msg, int* logPos, int num);
-
-inline
-float toFeet(float meters)
+//wayPointAngleFinder has been updated! Nww completely branchless. yay. 
+void NAVSYS::wayPointAngleFinder(PLANE* plane)
 {
-  return meters * 3.28084;
-}
+  float wx = plane->WPXYZ[plane->npc][0];
+  float wy = plane->WPXYZ[plane->npc][1];
+  float wz = plane->WPXYZ[plane->npc][2];
 
-int round(float value);
+  float px = plane->loc.x;
+  float py = plane->loc.y;
+  float pz = plane->loc.z;
 
-inline
-float latToFeet(float lat)
-{
-  return lat * 1014.688888;
-}
+  wx = longToFeet(wx, wz); 
+  px = longToFeet(px, pz);
+  
+  wy = latToFeet(wx); 
+  py = latToFeet(px);
 
-inline
-float longToFeet(float Long, float lat)
-{
-  return (fabs(Long * cos(lat) * 365288.0));
-}
+  wy-=py; wx-=px; wz-=pz;
 
-inline
-int16_t combine(uint8_t* buf, int start) //for converting 2s complement to int16_t
-{
-  return (~(uint16_t)(buf[start] << 8) | buf[start + 1]) -1;
-}
-
-inline
-uint16_t radianToFeet(float rad);
-
-inline
-float feetToLat(float feet)
-{
-  return feet / 1014.688888;
-}
-
-inline
-float feetToLong(float feet, float lat)
-{
-  return (fabs(feet / (cos(lat) / 365288.0)));
-}
-
-float circleDiv(float circleDivft, float radiusft)
-{
-  return asin(circleDivft/radiusft) * 2.0f;
-}
-
-// Define missing types
-struct pt3D 
-{
-    float x, y, z;
+  plane->WPA.roll = fabs(atan2(wx,wz)) + ((wx/fabs(wx) - 1.0f) * -1.570795f) + ((wz/fabs(wz) - 1.0f) * -0.7853795);
+  plane->WPA.pitch = atan2(wy, (sqrt(wx * wx + wz * wz)));
 };
 
-struct angle
+//fill in wiht kalman filter stuff later: maybevoid NAVSYS::planeAngleFinder(KALMAN* kalman)???
+//also planePointAngleFinder has been updated! Nww completely branchless. yay.
+void NAVSYS::planeAngleFinder(CKALMAN* ckalman, PLANE* plane, HMC::HMC* hmc)
 {
-float pitch;
-float roll;
-};
+  float x = plane->pAngle[0][0];
+  float y = plane->pAngle[1][0];
+  float z = plane->pAngle[2][0];
 
-struct flapPos
-{
-float fL;
-float fR;
+  plane->PA.roll = fabs(atan2(x, z) + ((x/fabs(x) - 1.0f) * -1.570795f) + ((z/fabs(z) - 1.0f) * -0.7853795));
+  plane->PA.pitch = atan2(y, (sqrt(x * x + z * z)));
 
-flapPos& operator+=(const flapPos& other)
-{
-fL += other.fL;
-fR += other.fR;
-return *this;
-}
-void rad(flapPos& myFlapPos);
-};
-
-struct FLAP
-{
-flapPos flap;
-
-/*this func below calculates wether the flap pos is more than +/- 60 deg(in rad) and if the flap is not >60 t = 1, else if  flap >=60 t=0. then either zeros out the flap pos and adj. to */
-void flapAdj(FLAP f)
-{
-  float t1 = fabs(f.flap.fL)/(f.flap.fL + static_cast<float>(!static_cast<int>(fabs(f.flap.fL)+0.9999999f)));
-  float t2 = static_cast<float>(!static_cast<int>(fabs(f.flap.fL)/1.047197f));
-  f.flap.fR = f.flap.fL = (f.flap.fL * t2) + (1.047197f * ((t2 - 1.0f) * -1.0f * t1 ));
-}
-};
-
-/*
-NOTE: 
-elevatorAdj and aileronAdj are now branchless. i got really bored. a lot of stuff is now branchless b/c i got bored.
-*/
-struct EP 
-{
-flapPos elevator;
-void elevatorAdj(EP ep)
-{
-  {
-    float fL = ep.elevator.fL;
-    float t = static_cast<float>(static_cast<int>(fabs(fL)/1.047197f));
-    fL = (fL * (1.0f - t)) + (1.047197f * t * (fL/fabs(fL) + (static_cast<float>(!static_cast<int>(fabs(fL) + 0.9999999f)))));
-
-    ep.elevator.fL = fL;
-    ep.elevator.fR = fL;
-
-    /*
-    this calculate wether the abs of fL is more than 60deg (in rads tho), if so t=1, else t=0. 
-    t either zeros out if its less that 60, keeping the elevator pos or make fL eq 60deg if it reads more than 60deg, by zeroing out the elevator pos, and setting to 60deg (either +/-). 
-    */
-  }
-}
-};
-
-struct AP
-{
-  flapPos aileron;
-  void aileronAdj(AP ap)
-  {
-    //read elevatorAdj for note on this code
-    float fL = ap.aileron.fL;
-    float t = static_cast<float>(static_cast<int>(fabs(fL)/1.047197f));
-    fL = (fL * (1.0f - t)) + (1.047197f * t * (fL/fabs(fL) + (static_cast<float>(!static_cast<int>(fabs(fL) + 0.9999999f)))));
-    ap.aileron.fL = fL;
-    ap.aileron.fR = fL * -1.0f;
-  }
-};
-
-struct HEMISPHERE
-{
-char NS;
-char EW;
-};
-
-struct Time
-{
-int hrs_;
-int min_;
-int sec_;
-int prev_hrs_;
-int prev_min_;
-int prev_sec_;
-};
-
-bool SHUTDOWNERROR = false;
-
-void shutDownErrorCheck()
-{
-  if(SHUTDOWNERROR)
-  {
-    std::cout << "SHUTDOWN ERROR" << std::endl;
-    //add code to return to main/realio stuff to hand over control to a real user
-  }
+  ckalman->loop(plane, hmc);
+  plane->PA.roll = ckalman->returnX(0);
+  
 }
 
-
-class PLANE;        
-
-namespace HMC
+void NAVSYS::updateEP(PLANE& plane, float value)
 {
-  class HMC
-  {
-  public:
-  double heading(PLANE* plane);
-
-  private:
-  int write(int fd, uint8_t* command);
-  int config(int fd);
-  int cycle(uint16_t command[3]);
-  //look into conv. X/Y/Z to compass dir.
-  };
+  plane.ep.flap.fR = plane.ep.flap.fL += value;
+  plane.ep.flapAdj(plane.ep);
 }
 
-class CKALMAN
+void NAVSYS::updateAP(PLANE& plane, float value)
 {
-private:
-void xPred();
-void pPred();
-void kGain();
-void measureUpdate(PLANE* plane, HMC::HMC* hmc);
-void xUpdate();
-void updateP();
-double magNorthOffset(PLANE* plane);
-
-public:
-void loop(PLANE* plane, HMC::HMC* hmc);
-float returnX(uint pos);
-
-private:
-float x[2][1];
-float p[2][2];
-float k[2][2];
-float y[2];
-float i[2][2] =
-{
-  {1.0f, 1.0f},
-  {1.0f, 1.0f}
-};
-float q[2][2];
-float r[2][2];
-
-};
-class PLANE
-{
-public:
-
-//waypoint data for gps
-angle WPA;
-pt3D loc;
-float WPXYZ[14][3];
-//plane data from MPU 6050
-angle PA;
-float pAngle[3][3];
-
-FLAP ep;
-FLAP ap;
-//aspeed 
-float speed;
-Time time;
-int npc;
-int gpsAcc;
-HEMISPHERE hemisphere;
-
-float AC[3];
-
-CKALMAN ckalman;
-HMC::HMC hmc;
-
-void updateGPS(float lat, float alt, float Long, char hem1, char hem2, float Acc, int hrs, int min, int sec)
-{
-  loc.x = lat;
-  loc.y = alt;
-  loc.z = Long;
-  hemisphere.NS = hem1;
-  hemisphere.EW = hem2;
-  gpsAcc = Acc;
-  time.prev_hrs_ = time.hrs_;
-  time.prev_min_ = time.min_;
-  time.prev_sec_ = time.sec_;
-
-  time.hrs_ = hrs;
-  time.min_ = min;
-  time.sec_ = sec;
+  int addOrSub = (!!static_cast<int>(value+1.0f)<<1)-1;
+  plane.ap.flap.fR = plane.ap.flap.fL += value * static_cast<float>(addOrSub*1.0f);
+  plane.ap.flapAdj(plane.ap);
 }
 
-};
-#endif
+void NAVSYS::updateNpc(PLANE* plane)
+{
+  float wx = plane->WPXYZ[plane->npc][0];
+  float wy = plane->WPXYZ[plane->npc][1];
+  float wz = plane->WPXYZ[plane->npc][2];
+
+  wx = longToFeet(wx, wz); wz = latToFeet(wz);
+
+  float px = plane->loc.x;
+  float py = plane->loc.y;
+  float pz = plane->loc.z;
+
+  px = longToFeet(px, pz); pz = latToFeet(pz);
+
+  wx = fabs(wx-px); wy = fabs(wy-py); wz = fabs(wz-pz);
+
+  //plane must be withing 4ft of the waypoint to be counted as marked. code below dis, then truncates the flip val with !
+  npc += 1 * (!static_cast<int> (wx/4.0f)) *
+             (!static_cast<int> (wy/4.0f)) *  
+             (!static_cast<int> (wz/4.0f));
+  //if true npc==routelen==0, then flips with ! 2x(zero -> 1, non-zero -> 0)
+  routeCompleted = !!(routeLen - npc);
+  
+}
