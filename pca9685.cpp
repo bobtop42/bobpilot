@@ -106,12 +106,11 @@ void PCA::updateServos(PLANE* plane)
         if(wake!=0)
           throw wake;
 
-        int aileronPos = plane->ap.flap.fL;
-        int elevatorPos = plane->ep.flap.fL;
+        float aileronPos = plane->ap.flap.fL;
+        float elevatorPos = plane->ep.flap.fL;
 
         if(writeReg(fd, 0x06, aileronPos)!=0){throw -1;}
-        if(writeReg(fd, 0x0A, aileronPos)!=0){throw -1;}
-        if(writeReg(fd, 0x0E, elevatorPos)!=0){throw -1;}
+        if(writeReg(fd, 0x0A, elevatorPos)!=0){throw -1;}
 
         uint8_t sleepR[1] = {0x00};
         if(write(fd, sleepR, 1)!= 1) throw -1;
