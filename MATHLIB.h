@@ -13,6 +13,8 @@
 #include "stdint.h"
 #include <ctime>                
 #include <cstdint>
+#include "WPROUTE.h"
+#include "preAngleCalc.h"
 //#include "SDL.h"
 
 float PI = 3.14159f;
@@ -228,6 +230,7 @@ float q[2][2];
 float r[2][2];
 
 };
+
 class PLANE
 {
 public:
@@ -235,7 +238,9 @@ public:
 //waypoint data for gps
 angle WPA;
 pt3D loc;
-float WPXYZ[14][3];
+PLANEFT planeft;
+
+WPROUTE<int> WPXYZ;
 //plane data from MPU 6050
 angle PA;
 float pAngle[3][3];
@@ -245,7 +250,6 @@ FLAP ap;
 //aspeed 
 float speed;
 Time time;
-int npc;
 int gpsAcc;
 HEMISPHERE hemisphere;
 
@@ -269,6 +273,8 @@ void updateGPS(float lat, float alt, float Long, char hem1, char hem2, float Acc
   time.hrs_ = hrs;
   time.min_ = min;
   time.sec_ = sec;
+
+  planeft.normalize(this);
 }
 
 };
