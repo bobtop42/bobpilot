@@ -3,25 +3,18 @@
 
 //READ ME: num of wp vals set in main? 14 for rn tho
 
-
 NAVSYS::NAVSYS():npc(0), routeLen(14) {};
 
 //wayPointAngleFinder has been updated! Nww completely branchless. yay. 
 void NAVSYS::wayPointAngleFinder(PLANE* plane)
 {
-  float wx = plane->WPXYZ[plane->npc][0];
-  float wy = plane->WPXYZ[plane->npc][1];
-  float wz = plane->WPXYZ[plane->npc][2];
+  float wx = plane->planeft.wxft;
+  float wy = plane->planeft.wyft;;
+  float wz = plane->planeft.wzft;
 
-  float px = plane->loc.x;
-  float py = plane->loc.y;
-  float pz = plane->loc.z;
-
-  wx = longToFeet(wx, wz); 
-  px = longToFeet(px, pz);
-  
-  wy = latToFeet(wx); 
-  py = latToFeet(px);
+  float px = plane->planeft.pxft;
+  float py = plane->planeft.pyft;
+  float pz = plane->planeft.pzft;
 
   wy-=py; wx-=px; wz-=pz;
 
@@ -53,32 +46,37 @@ void NAVSYS::updateEP(PLANE& plane, float value)
 
 void NAVSYS::updateAP(PLANE& plane, float value)
 {
-  int addOrSub = (!!static_cast<int>(value+1.0f)<<1)-1;
-  plane.ap.flap.fR = plane.ap.flap.fL += value * static_cast<float>(addOrSub*1.0f);
+  plane.ap.flap.fR = plane.ap.flap.fL += value;
   plane.ap.flapAdj(plane.ap);
 }
 
 void NAVSYS::updateNpc(PLANE* plane)
 {
-  float wx = plane->WPXYZ[plane->npc][0];
-  float wy = plane->WPXYZ[plane->npc][1];
-  float wz = plane->WPXYZ[plane->npc][2];
+  px = plane->planeft.pxft; py = plane->planeft.pyft; pz = plane->planeft.pzft;
+  wx = plane->planeft.wxft; wy = plane->planeft.wyft; wz = plane->planeft.wzft;
 
-  wx = longToFeet(wx, wz); wz = latToFeet(wz);
+  wx = fabs(wx - px); wy = fabs(wy - py); wz = fabs(wz - pz);
 
-  float px = plane->loc.x;
-  float py = plane->loc.y;
-  float pz = plane->loc.z;
+  /*plane must be withing ft of the waypoint to be counted as marked. code below dis, then truncates the flip val with !*/
 
-  px = longToFeet(px, pz); pz = latToFeet(pz);
+  uintptr_t wpIncra = (!static_cast<uintptr_t>(wx/6.0f)) *  
+                      (!static_cast<uintptr_t>(wy/6.0f)) *
+                      (!static_cast<uintptr_t>(wz/6.0f));
 
-  wx = fabs(wx-px); wy = fabs(wy-py); wz = fabs(wz-pz);
+  uintptr_t wpaddr = (reinterpret_cast<uintptr_t>(plane->WPXYZ.nextWPpos->next_)* wpIncra) + (reinterpret_cast<uintptr_t>(plane->WPXYZ.nextWPpos)* (!wpIncra));
 
-  //plane must be withing 4ft of the waypoint to be counted as marked. code below dis, then truncates the flip val with !
-  npc += 1 * (!static_cast<int> (wx/4.0f)) *
-             (!static_cast<int> (wy/4.0f)) *  
-             (!static_cast<int> (wz/4.0f));
-  //if true npc==routelen==0, then flips with ! 2x(zero -> 1, non-zero -> 0)
-  routeCompleted = !!(routeLen - npc);
+  plane->WPXYZ.nextWPpos = reinterpret_cast<WPROUTE<int>::WP*>(wpaddr);
   
+  //if true npc==routelen==0, then flips with ! 2x(zero -> 1, non-zero -> 0)
+  routeCompleted = static_cast<uint8_t>(!wpaddr);
 }
+
+/*
+void NAVSYS::setUpRoute()
+{
+  std::cout<<"enter a number of waypoints for the route: \n";
+  std::cin>>routeLen;
+
+  float WPROUTEPOINTERS[this->routeLen][3] = new float;
+}
+*/
