@@ -1,43 +1,38 @@
-#ifndef PCA_H
-#define PCA_H
-#include "MATHLIB.h"
-#include "MATHLIB.h"
+#pragma once
+
 #define PCA_ADDRESS 0x40
 #define MODE1 0x00
 
+#include "MATHLIB.h"
+#include "atc.h"
 #include <iostream>
 #include <unistd.h>
 #include <tuple>
-
-//check the files below
+#include <cmath>
 #include <fcntl.h>
 #include "sys/ioctl.h"
 #include "sys/types.h"
 #include "linux/i2c-dev.h"
-#include <unistd.h>
-#include "stdint.h"
-#include <iostream>
+#include <stdint.h>
 #include <ctime>
-#include <fcntl.h>        
-#include <unistd.h>       
-#include <sys/ioctl.h>    
-#include <linux/i2c-dev.h>
-#include <cstdint>        
-#include <iostream>
+#include <cstdint>
+#include <cstdlib>
 
 class PCA
 {
-public:
-void updateServos(PLANE* plane);
-
-PCA();
-
 private:
-int wakeSequence();
-auto radianToStep(float radian);
-int writeReg(int fd, uint8_t reg, float value);
+    int fd;
 
-int fd;
+    int wakeSequence();
+    auto radianToStep(float radian);
+    int writeReg(uint8_t reg, float radian);
+
+public:
+    bool PCASHUTDOWNERROR = false;
+
+    PCA();
+
+    int toggleAutoIncrament(uint8_t togglesettings);
+    int setUp();
+    void updateServos(PLANE* plane, ATC *atc);
 };
-
-#endif
