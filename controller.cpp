@@ -7,7 +7,7 @@ void CONTROLLER::update(PLANE* plane)
   {
     close(fd);
     fd = open("/DEV/SERIAL0", O_RDWR | O_NOCTTY | O_NDELAY);
-    if(fd!= 0)
+    if(fd!=0)
     {
       close(fd);
       return;
@@ -31,46 +31,62 @@ void CONTROLLER::update(PLANE* plane)
 void CONTROLLER::inputChannelData(PLANE *plane, uint8_t *buf, int start)
 {
   
-  ch1 = ((buf[start]<<3) | (buf[start+1]>>5)) & 0x07FF;
-  ch2 = ((buf[start+1]<<6) | (buf[start+2]>>2)) & 0x07FF;
-  ch3 = ((buf[start+2]<<9) | (buf[start+3]<<1) | (buf[start+4]>>7)) & 0x07FF;
-  ch4 = ((buf[start+4]<<4) | (buf[start+5]>>4)) & 0x07FF;
-  ch5 = ((buf[start+5]<<7) | (buf[start+6]>>1)) & 0x07FF;
-  ch6 = ((buf[start+6]<<10) | (buf[start+7]<<2) | (buf[start+8]>>6)) & 0x07FF;
-  ch7 = ((buf[start+8]<<5) | (buf[start+9]>>3)) & 0x07FF;
-  ch8 = ((buf[start+9]<<8) | buf[start+10]) & 0x07FF;
-  ch9 = ((buf[start+11]<<1) | (buf[start+12]>>7)) & 0x07FF;
-  ch10 = ((buf[start+12]<<4) | (buf[start+13]>>4)) & 0x07FF;
+  ail = ((buf[start]<<3) | (buf[start+1]>>5)) & 0x07FF;
+  ele = ((buf[start+1]<<6) | (buf[start+2]>>2)) & 0x07FF;
+  thr = ((buf[start+2]<<9) | (buf[start+3]<<1) | (buf[start+4]>>7)) & 0x07FF;
+  rud = ((buf[start+4]<<4) | (buf[start+5]>>4)) & 0x07FF;
+  SA = ((buf[start+5]<<7) | (buf[start+6]>>1)) & 0x07FF;
+  SB = ((buf[start+6]<<10) | (buf[start+7]<<2) | (buf[start+8]>>6)) & 0x07FF;
+  SC = ((buf[start+8]<<5) | (buf[start+9]>>3)) & 0x07FF;
+  SD = ((buf[start+9]<<8) | buf[start+10]) & 0x07FF;
+  SE = ((buf[start+11]<<1) | (buf[start+12]>>7)) & 0x07FF;
+  SF = ((buf[start+12]<<4) | (buf[start+13]>>4)) & 0x07FF;
 };
 
-void  CONTROLLER::engageAP()
+void CONTROLLER::toggleSA()
 {
-  flags^=0x06;
+  toggleable = !(sa&0x8) * !toggleable;
 }
 
-void  CONTROLLER::disengageAP()
+void CONTROLLER::integrateAileron(FLAP *ap)
 {
-  flags^=0x06;
-}
-
-void  CONTROLLER::fuseAileron(FLAP *ap)
-{
-  ap->flap.fR = ap->flap.fL+=ch1;
+  int16_t t = (flags&0x2)>>1;
+  ap->flap.fL = (static_cast<float>(t) * ap->flap.fL) + (static_cast<float>((!!((flags&0x20)+!t))*aileron*-1)/1.6666666f);
+  ap->flap.fR = ap->flap.fL;
   ap->flapAdj(*ap);
 }
 
-void CONTROLLER::fuseElevator(FLAP *ep)
+void CONTROLLER::integrateElevator(FLAP *ep)
 {
-  ep->flap.fR = ep->flap.fL += ch2;
+  int16_t t = (flags&0x2)>>1;
+  ep->flap.fL = (static_cast<float>(t) * ep->flap.fL) + (static_cast<float>((!!((flags&0x20)+!t))*aileron*-1)/1.6666666f);
+  ep->flap.fR = ep->flap.fL;
   ep->flapAdj(*ep);
 }
 
-void CONTROLLER::fuseThrottle(ATC *atc)
+void CONTROLLER::integrateThrottle(ATC *atc)
 {
-  
+  int16_t t = (flags&0x2)>>1;
+  atc->atcMod_ = (atc->atcMod_ * static_cast<float>(t)) + (static_cast<float>((!!((flags&0x20)+!t)) * throttle + (100*t)) / 200.0f);
+  atc->targetSpeed(atc->atcMod_);
 }
 
-void CONTROLLER::setAileron(FLAP *ap)
+void CONTROLLER::integrateFlap(FLAP *fp)
 {
-  
+  fp->flap.fR = fp->flap.fL = 20.0f * static_cast<float>((0x20&flags)>>5);
+}
+
+void CONTROLLER::integrateRudder(FLAP *rp)
+{
+  rp->flap.fR = rp->flap.fL = rudder * static_cast<float>(!(0x2&flags));
+}
+
+void CONTROLLER::updateControllMode()
+{
+  flags = (((flags&0x2)*!toggleable)|flags) | (((flags&0xFC)*toggleable)|(toggleable*((SA&0x7000)>>14)));
+}
+
+void CONTROLLER::updateLandingMode()
+{
+  flags = (((flags&0x20)*!toggleable)|flags) | (((flags&0xCF)*toggleable)|((!((SA-50)&0x7000)))<<5);
 }
