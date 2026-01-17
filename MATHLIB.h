@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <unistd.h>
+#include <chrono>
 #include <fcntl.h>
 #include "sys/ioctl.h"
 #include "sys/types.h"
@@ -14,15 +15,23 @@
 #include <ctime>                
 #include <cstdint>
 #include "WPROUTE.h"
-#include "preAngleCalc.h"
 //#include "SDL.h"
 
 float PI = 3.14159f;
 
+
 //READ ME: num of WP vals set in main?
 //14 for rn tho
 
+union BFABSUNION {int i; float f;};
 
+float bfabs(float val)
+{
+  BFABSUNION bfu;
+  bfu.f = val;
+  bfu.i &= 0x7FFFFFFF;
+  return bfu.f;
+}
 
 float floatPositionReturn(const std::string msg, int* logPos, int num);
 
@@ -117,45 +126,6 @@ void flapAdj(FLAP f)
 }
 };
 
-/*
-NOTE: 
-elevatorAdj and aileronAdj are now branchless. i got really bored. a lot of stuff is now branchless b/c i got bored.
-*/
-struct EP 
-{
-flapPos elevator;
-void elevatorAdj(EP ep)
-{
-  {
-    float fL = ep.elevator.fL;
-    float t = static_cast<float>(static_cast<int>(fabs(fL)/1.047197f));
-    fL = (fL * (1.0f - t)) + (1.047197f * t * (fL/fabs(fL) + (static_cast<float>(!static_cast<int>(fabs(fL) + 0.9999999f)))));
-
-    ep.elevator.fL = fL;
-    ep.elevator.fR = fL;
-
-    /*
-    this calculate wether the abs of fL is more than 60deg (in rads tho), if so t=1, else t=0. 
-    t either zeros out if its less that 60, keeping the elevator pos or make fL eq 60deg if it reads more than 60deg, by zeroing out the elevator pos, and setting to 60deg (either +/-). 
-    */
-  }
-}
-};
-
-struct AP
-{
-  flapPos aileron;
-  void aileronAdj(AP ap)
-  {
-    //read elevatorAdj for note on this code
-    float fL = ap.aileron.fL;
-    float t = static_cast<float>(static_cast<int>(fabs(fL)/1.047197f));
-    fL = (fL * (1.0f - t)) + (1.047197f * t * (fL/fabs(fL) + (static_cast<float>(!static_cast<int>(fabs(fL) + 0.9999999f)))));
-    ap.aileron.fL = fL;
-    ap.aileron.fR = fL * -1.0f;
-  }
-};
-
 struct HEMISPHERE
 {
 char NS;
@@ -185,6 +155,9 @@ void shutDownErrorCheck()
 
 
 class PLANE;        
+template<typename T>
+class WPROUTE;
+struct PLANEFT;
 
 namespace HMC
 {
@@ -238,27 +211,51 @@ public:
 //waypoint data for gps
 angle WPA;
 pt3D loc;
-PLANEFT planeft;
 
 WPROUTE<int> WPXYZ;
 //plane data from MPU 6050
 angle PA;
 float pAngle[3][3];
+long long int dt;
+long long timePrev;
 
 FLAP ep;
 FLAP ap;
+FLAP fp;
+FLAP rp;
+
 //aspeed 
 float speed;
 Time time;
 int gpsAcc;
 HEMISPHERE hemisphere;
 
+int hdop;
+int numsat;
+
 float AC[3];
 
 CKALMAN ckalman;
 HMC::HMC hmc;
+struct PLANEFT
+{
+float wxft, wyft, wzft;
+float pxft, pyft, pzft;
+void normalize(PLANE *plane)
+{
+  wxft = plane->WPXYZ.nextWPpos->x;
+  wyft = plane->WPXYZ.nextWPpos->y;
+  wzft = plane->WPXYZ.nextWPpos->z;
 
-void updateGPS(float lat, float alt, float Long, char hem1, char hem2, float Acc, int hrs, int min, int sec)
+  pxft = longToFeet(plane->loc.x, plane->loc.z);
+  pyft = plane->loc.y;
+  pzft = latToFeet(plane->loc.z);
+}
+};
+
+PLANEFT planeft;
+
+void updateGPS(float lat, float alt, float Long, char hem1, char hem2, float Acc, int hrs, int min, int sec, int Numsat, int Hdop)
 {
   loc.x = lat;
   loc.y = alt;
@@ -273,6 +270,9 @@ void updateGPS(float lat, float alt, float Long, char hem1, char hem2, float Acc
   time.hrs_ = hrs;
   time.min_ = min;
   time.sec_ = sec;
+  
+  numsat = Numsat;
+  hdop = Hdop;
 
   planeft.normalize(this);
 }
