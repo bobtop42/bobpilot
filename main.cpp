@@ -1,7 +1,5 @@
 #include "MATHLIB.h"
 #include "realio.h"
-#include "simio.h"
-#include "replayio.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -14,7 +12,7 @@
 int startUpInput()
 {
   int mode;
-  std::cout << "Choose bobpilot operating mode: \n Press 1 for real mode (realio) \n Press 2 for simulation mode (simio)\n Press 3 for replay mode (replayio)\n Press 4 to quit"
+  std::cout << "Choose bobpilot operating mode: \n Press 1 for real mode (realio)\n Press 4 to quit"
   << std::endl;
   std::cin >> mode;
   return mode;
@@ -45,11 +43,6 @@ int main(int argc, char**argv)
     return -1;
   }
 
-  if(SHUTDOWNERROR)
-  {
-    std::cout<<"ERROR: SHUTDOWNERROR flag is true. \n shutting down now.\n please try again." << std::endl;
-  }
-
   bool notQuit = false;
 
 
@@ -58,6 +51,7 @@ int main(int argc, char**argv)
   */
 
   //basic program loop function
+  REAL *realio = nullptr;
   while(!notQuit)
     {
       int mode = startUpInput();
@@ -65,7 +59,7 @@ int main(int argc, char**argv)
         {
           case 1:
             {
-              REAL *realio = new REAL;
+              realio = new REAL;
               realio->setUp();
               if(!realio->setUp_)
                 std::cout<<"ERROR: realio failed to start up. \n please try again." << std::endl;
@@ -75,7 +69,7 @@ int main(int argc, char**argv)
                 }
               delete realio;
               break;
-            }
+            }/*
           case 2:
             {
               SIM *simio = new SIM;
@@ -101,6 +95,11 @@ int main(int argc, char**argv)
                 }
               delete replayio;
               break;
+            }*/
+          case 4:
+            {
+	      std::cout<<"EXITING BOBPILOT...\exiting now"<<std::endl;
+	      return 0;
             }
         }
     }
