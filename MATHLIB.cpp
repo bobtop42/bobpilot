@@ -28,6 +28,8 @@ float floatPositionReturn(const std::string msg, int* logPos, int num)
 {
   int high = std::stoi(msg.substr(logPos[num]+1, 1));
   int low = std::stoi(msg.substr(logPos[num+1], (logPos[num+2]-logPos[num+1])));
+  
+  
   float combined = positionReturn(high, low);
   return combined;
 }
