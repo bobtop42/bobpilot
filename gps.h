@@ -1,30 +1,39 @@
-#ifndef GPS_H
-#define GPS_H
+#pragma once
+
 #include "MATHLIB.h"
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <tuple>
 #include <termios.h>
-#include <tuple>
-
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <linux/i2c-dev.h>
+#include <chrono>
+#include <thread>
 
 class GPS
 {
 public:
-void update(PLANE* plane, const std::string gpsmsg);
-void update(PLANE* plane);
-bool configSerialPort(int fd);
+    bool goodRead = true;
 
-GPS();
+    void openSerialFD();
+    bool configureSerialPort();
 
-private:
-void punctuationMarker(const std::string gpsmsg);
-auto parser(const std::string gpsmsg, int puncLocation[67])-> std::tuple<int,int,int,float,char,float,char,int,float>;
+    void markPunctuationPositions(const std::string gpsmsg);
+    auto parseGPGGA(const std::string gpsmsg, int puncLocation[67]);
 
-int puncLocation[67];
-bool gpsERRORepen = false;
-bool gpsERRORread = false;
+    void processGPSMessage(PLANE* plane, const std::string gpsmsg);
+    void readAndParseGPS(PLANE* plane, int tries);
+    void refreshGPSData(PLANE* plane);
+
+    float gpsAltitude;
+    int fd;
+
+    int puncLocation[67];
+    bool gpsERRORepen = false;
+    bool gpsERRORread = false;
+    bool GPGGA = true;
 };
-
-#endif
