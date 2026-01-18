@@ -43,6 +43,8 @@ int I2C::setUp()
     if(std::isnan(axmt))
         return -1;
 
+    axm = axmt; aym = aymt; azm = azmt;
+    gxm = gxmt; gym = gymt; gzm = gzmt;
     
     return 0;
 }
@@ -70,14 +72,14 @@ int I2C::update(PLANE* plane)
     gy = (buf[10] << 8) | buf[11];
     gz = (buf[12] << 8) | buf[13];
 
-    plane->pAngle[0][0] = (float)ax / 16384.0f * 9.80665f;
-    plane->pAngle[0][1] = (float)ay / 16384.0f * 9.80665f;
-    plane->pAngle[0][2] = (float)az / 16384.0f * 9.80665f;
+    plane->pAngle[0][0] = ((float)ax / 16384.0f * 9.80665f) - axm;
+    plane->pAngle[0][1] = ((float)ay / 16384.0f * 9.80665f) - aym;
+    plane->pAngle[0][2] = ((float)az / 16384.0f * 9.80665f) - azm;
 
     constexpr float torad = 131.0f * (3.14156f / 180.0f);
-    plane->pAngle[2][0] = (float)gx / torad;
-    plane->pAngle[2][1] = (float)gy / torad;
-    plane->pAngle[2][2] = (float)gz / torad;
+    plane->pAngle[2][0] = ((float)gx / torad) - gxm;
+    plane->pAngle[2][1] = ((float)gy / torad) - gym;
+    plane->pAngle[2][2] = ((float)gz / torad) - gzm;
 
     using clock = std::chrono::steady_clock;
     static clock::time_point last = clock::now();
@@ -219,8 +221,7 @@ int I2C::errorhandlerswitchtable(int errorlvl)
 
 auto I2C::calibrate(int loops)
 {
-    uint16_t zeros[6] = {0,0,0,0,0,0};
-
+    int16_t zeros[6] = {0,0,0,0,0,0};
     uint16_t ax, ay, az, gx, gy, gz;
     
     for(i=0; i<loops; i++)
