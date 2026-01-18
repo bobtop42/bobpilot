@@ -38,6 +38,12 @@ int I2C::setUp()
             return -1;
         }
     }
+
+    auto[axmt, aymt, azmt, gxmt, gymt, gzmt] = calibrate(3000);
+    if(std::isnan(axmt))
+        return -1;
+
+    
     return 0;
 }
 
@@ -210,3 +216,40 @@ int I2C::errorhandlerswitchtable(int errorlvl)
     }
   return 0;
 };
+
+auto I2C::calibrate(int loops)
+{
+    uint16_t zeros[6] = {0,0,0,0,0,0};
+
+    uint16_t ax, ay, az, gx, gy, gz;
+    
+    for(i=0; i<loops; i++)
+    {
+        if(readdata(0x33)!=0)
+            return std::make_tuple(NAN, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        
+        ax = (buf[0] << 8) | buf[1];
+        ay = (buf[2] << 8) | buf[3];
+        az = (buf[4] << 8) | buf[5];
+        gx = (buf[8] << 8) | buf[9];
+        gy = (buf[10] << 8) | buf[11];
+        gz = (buf[12] << 8) | buf[13];
+        
+        zero[0] += (double)ax/16384.0 * 9.8665;
+        zero[1] += (double)ax/16384.0 * 9.8665;
+        zero[2] += (double)ax/16384.0 * 9.8665;
+        
+        constexpr double torad = 131.0f * (3.14159/180.0);
+        zero[3] += (double)gx/torad;
+        zero[4] += (double)gx/torad;
+        zero[5] += (double)gx/torad;
+    }
+
+    zero[0]/=static_cast<double>(loops); zero[1]/=static_cast<int>(loops);
+    zero[2]/=static_cast<double>(loops); zero[3]/=static_cast<int>(loops);
+    zero[4]/=static_cast<double>(loops); zero[5]/=static_cast<int>(loops);
+
+    return std::make_tuple((float)zero[0], (float)zero[1],
+                           (float)zero[2], (float)zero[3],
+                           (float)zero[4], (float)zero[5]);
+}
