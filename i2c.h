@@ -26,6 +26,7 @@ I2C();
 
 void updatePA(PLANE* plane);
 int setUp();
+auto calibrate(int loops);
 
 private:
 //std::string dev = "/dev/i2c-1";
