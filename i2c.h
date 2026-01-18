@@ -32,6 +32,7 @@ private:
 //std::string dev = "/dev/i2c-1";
 uint8_t config[5][2];
 int16_t read16b(int fd, int buf_reg);
+int16_t axm, aym, azm, gxm, gym, gzm;
 };
 
 #endif
