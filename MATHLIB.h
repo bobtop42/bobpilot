@@ -17,7 +17,7 @@
 #include "WPROUTE.h"
 //#include "SDL.h"
 
-float PI = 3.14159f;
+inline constexpr float PI = 3.14159f;
 
 
 //READ ME: num of WP vals set in main?
@@ -142,7 +142,7 @@ int prev_min_;
 int prev_sec_;
 };
 
-bool SHUTDOWNERROR = false;
+inline bool SHUTDOWNERROR = false;
 
 void shutDownErrorCheck()
 {
