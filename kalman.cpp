@@ -1,10 +1,4 @@
-#include "kalman.h"
-#include "io.h"
-
-void KALMAN::xPred()
-{
-  float AX[6];
-  float BU [6];
+float BU [6];
 
   for(int i=0; i<3; ++i)
     {
