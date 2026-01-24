@@ -18,8 +18,8 @@ void NAVSYS::wayPointAngleFinder(PLANE* plane)
 
   wy-=py; wx-=px; wz-=pz;
 
-  plane->WPA.roll = fabs(atan2(wx,wz)) + ((wx/fabs(wx) - 1.0f) * -1.570795f) + ((wz/fabs(wz) - 1.0f) * -0.7853795);
-  plane->WPA.pitch = atan2(wy, (sqrt(wx * wx + wz * wz)));
+  plane->WPA.roll = bfabs(batan2(wx,wz)) + ((wx/bfabs(wx) - 1.0f) * -1.570795f) + ((wz/bfabs(wz) - 1.0f) * -0.7853795);
+  plane->WPA.pitch = batan2(wy, (qsqrt(wx * wx + wz * wz)));
 };
 
 //fill in wiht kalman filter stuff later: maybevoid NAVSYS::planeAngleFinder(KALMAN* kalman)???
@@ -30,8 +30,8 @@ void NAVSYS::planeAngleFinder(CKALMAN* ckalman, PLANE* plane, HMC::HMC* hmc)
   float y = plane->pAngle[1][0];
   float z = plane->pAngle[2][0];
 
-  plane->PA.roll = fabs(atan2(x, z) + ((x/fabs(x) - 1.0f) * -1.570795f) + ((z/fabs(z) - 1.0f) * -0.7853795));
-  plane->PA.pitch = atan2(y, (sqrt(x * x + z * z)));
+  plane->PA.roll = bfabs(batan2(x, z) + ((x/bfabs(x) - 1.0f) * -1.570795f) + ((z/bfabs(z) - 1.0f) * -0.7853795));
+  plane->PA.pitch = batan2(y, (qsqrt(x * x + z * z)));
 
   ckalman->loop(plane, hmc);
   plane->PA.roll = ckalman->returnX(0);
@@ -55,7 +55,7 @@ void NAVSYS::updateNpc(PLANE* plane)
   px = plane->planeft.pxft; py = plane->planeft.pyft; pz = plane->planeft.pzft;
   wx = plane->planeft.wxft; wy = plane->planeft.wyft; wz = plane->planeft.wzft;
 
-  wx = fabs(wx - px); wy = fabs(wy - py); wz = fabs(wz - pz);
+  wx = bfabs(wx - px); wy = bfabs(wy - py); wz = bfabs(wz - pz);
 
   /*plane must be withing ft of the waypoint to be counted as marked. code below dis, then truncates the flip val with !*/
 
