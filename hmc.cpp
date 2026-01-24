@@ -1,4 +1,5 @@
-#include "MATHLIB.h"
+#include "MATHLIB.h" //REPLACE TRIG WITH BTRIG
+#include "bmath.h"
 
 using namespace HMC;
 
@@ -84,9 +85,9 @@ double heading(PLANE* plane)
 
   float pX = pos[0]; float pY = pos[1]; float pZ = pos[2];
 
-  float Xh = pX * cos(pitch) + pZ * cos(pitch);
-  float Yh = pX * sin(roll) * sin(pitch) + pY * cos(roll) - pZ * sin(roll) * cos(pitch);
+  float cosp = bcos(pitch); float sinr = bsin(roll);
+  float Xh = pX * cosp + pZ * cosp;
+  float Yh = pX * sinr * bsin(pitch) + pY * bcos(roll) - pZ * sinr * cosp;
 
-  return atan2(Yh, Xh);
+  return batan2(Yh, Xh);
 }
-
