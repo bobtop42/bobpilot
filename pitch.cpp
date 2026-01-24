@@ -14,16 +14,16 @@ void PITCH::disengaged()
 
 void PITCH::targetPitch(float value, PLANE* plane)
 {
-  targetPitch_ = fabs(value);
-  PitchDir = static_cast<int8_t>(value/fabs(value) + static_cast<float>(!static_cast<int>(fabs(value))));
+  targetPitch_ = bfabs(value);
+  PitchDir = static_cast<int8_t>(value/bfabs(value) + static_cast<float>(!static_cast<int>(bfabs(value))));
   //read target roll for description of this code, its the same logic/value wise, but with pitch instead of roll
   
 }
 
 void PITCH::targetPitch(PLANE* plane)
 {
-  targetPitch_ = fabs(plane->WPA.pitch - plane->PA.pitch);
-  PitchDir = (plane->WPA.pitch - plane->PA.pitch)/fabs(plane->WPA.pitch - plane->PA.pitch);
+  targetPitch_ = bfabs(plane->WPA.pitch - plane->PA.pitch);
+  PitchDir = (plane->WPA.pitch - plane->PA.pitch)/bfabs(plane->WPA.pitch - plane->PA.pitch);
 };
 
 void PITCH::adjustElevator(float value, PLANE* plane)
