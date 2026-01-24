@@ -10,7 +10,7 @@ void HOLD::prePosCalc(float radiusft, float alt, float lat, float lng, int8_t cl
   pz = latToFeet(pz);
 
   ty-=py; tx-=px; tz-=pz;
-  px = tx/fabs(tx); pz = tz/fabs(tz);
+  px = tx/bfabs(tx); pz = tz/bfabs(tz);
 
   int8_t isX = static_cast<int8_t>(px * pz * clockWise);
 
@@ -35,9 +35,9 @@ void HOLD::prePosCalc(float radiusft, float alt, float lat, float lng, int8_t cl
 
   tx-=px; tz-=pz;
 
-  plane->WPA.roll = fabs(atan2(tx, tx)) + ((tx/fabs(tx) - 1.0f) * -1.570795f) + ((tz/fabs(tz) - 1.0f) * -0.7853975f);
+  plane->WPA.roll = bfabs(batan2(tx, tx)) + ((tx/bfabs(tx) - 1.0f) * -1.570795f) + ((tz/bfabs(tz) - 1.0f) * -0.7853975f);
 
-  plane->WPA.pitch = atan2(ty, (sqrt(tx * tx + tz * tz)));
+  plane->WPA.pitch = batan2(ty, (qsqrt(tx * tx + tz * tz)));
 }
 
 void HOLD::targetHeading(PLANE* plane, PITCH* pitch, ROLL* roll)
@@ -52,7 +52,7 @@ void HOLD::holdAlt(float altft, PLANE* plane)
   px = longToFeet(px, pz);
   pz = latToFeet(pz);
 
-  plane->WPA.pitch = atan2((altft-py), (sqrt(px*px+pz*pz)));
+  plane->WPA.pitch = batan2((altft-py), (qsqrt(px*px+pz*pz)));
 }
 
 inline
@@ -67,9 +67,9 @@ void HOLD::heading(float dir, PLANE* plane, ROLL* roll)
   Proll = plane->PA.roll;
   holdHeading(dir, plane);
   
-  tx = fabs(static_cast<float>(static_cast<int>(fabs(dir - Proll)/6.28318f + 0.5f) * 6.28318f)) - fabs(dir-Proll);
+  tx = bfabs(static_cast<float>(static_cast<int>(bfabs(dir - Proll)/6.28318f + 0.5f) * 6.28318f)) - bfabs(dir-Proll);
 
-  tx = ((dir - Proll)/fabs(dir - Proll)) * tx;
+  tx = ((dir - Proll)/bfabs(dir - Proll)) * tx;
 
     roll->targetRoll(tx, plane);
   
@@ -91,22 +91,22 @@ void HOLD::holdCircle(int radiusft, float alt, float Lat, float Long, int8_t clo
   Long = longToFeet(Long, Lat); Lat = latToFeet(Lat);
   Long-=px; Lat-=pz;
   
-  tx = fabs(atan2(Long, Lat) + ((Long/fabs(Long) - 1.0f) * -1.5750795f) + ((Lat/fabs(Lat) - 1.0f) * -0.7853795f));
+  tx = bfabs(batan2(Long, Lat) + ((Long/bfabs(Long) - 1.0f) * -1.5750795f) + ((Lat/bfabs(Lat) - 1.0f) * -0.7853795f));
 
   Long += asin(tx + (circleDiv * static_cast<float>(clockWise)));
   Lat += acos(tx + (circleDiv * static_cast<float>(clockWise)));
 
   Long-=px; Lat-=pz;
 
-  plane->WPA.roll = fabs(atan2(Long, Lat) + ((Long/fabs(Long) - 1.0f) * -1.570795f) + ((Lat/fabs(Lat) - 1.0f) * -0.7853795f));
+  plane->WPA.roll = bfabs(batan2(Long, Lat) + ((Long/bfabs(Long) - 1.0f) * -1.570795f) + ((Lat/bfabs(Lat) - 1.0f) * -0.7853795f));
 
   alt-=py;
-  plane->WPA.pitch = atan2(alt, (sqrt(Long * Long + Lat * Lat)));
+  plane->WPA.pitch = batan2(alt, (qsqrt(Long * Long + Lat * Lat)));
 }
 
 void HOLD::holdCircle(int radiusft, float alt, float Lat, float Long, int8_t clockWise, PLANE* plane, ROLL* roll, PITCH* pitch, float circleDiv)
 {
-  circleDiv = circleDiv + !static_cast<int>(fabs(circleDiv) + 0.9999999f)/fabs(circleDiv) + !static_cast<int>(fabs(circleDiv) + 0.9999999f);
+  circleDiv = circleDiv + !static_cast<int>(bfabs(circleDiv) + 0.9999999f)/bfabs(circleDiv) + !static_cast<int>(bfabs(circleDiv) + 0.9999999f);
   
   px = plane->loc.x;
   py = plane->loc.y;
@@ -115,7 +115,7 @@ void HOLD::holdCircle(int radiusft, float alt, float Lat, float Long, int8_t clo
   px = longToFeet(px, pz); pz = latToFeet(pz);
   tx = longToFeet(Long, Lat); tz = latToFeet(Lat);
 
-  if(fabs(px-tx) > 4.0f && fabs(py-alt) > 4.0f && fabs(pz-tz) > 4.0f)
+  if(bfabs(px-tx) > 4.0f && bfabs(py-alt) > 4.0f && bfabs(pz-tz) > 4.0f)
   {
     prePosCalc(radiusft, alt, Lat, Long, clockWise, plane);
   }
