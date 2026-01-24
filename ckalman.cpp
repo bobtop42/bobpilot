@@ -1,4 +1,5 @@
-#include "MATHLIB.h"
+#include "MATHLIB.h" //REPLACE TRIG WITH BTRIG
+#include "bmath.h"
 
 void CKALMAN::xPred()
 {
@@ -43,7 +44,7 @@ double magNorthOffset(PLANE* plane)
   px = longToFeet(px, pz);
   pz = latToFeet(pz);
 
-  return atan2(px, pz);
+  return batan2(px, pz);
 }
 
 void CKALMAN::measureUpdate(PLANE* plane, HMC::HMC* hmc)
