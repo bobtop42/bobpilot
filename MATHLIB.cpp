@@ -70,3 +70,32 @@ uint16_t radianToFeet(float rad)
   rad = fmod(rad, 1.0f);
   return (uint16_t)(rad);
 }
+
+void FLAP::flapAdj(FLAP f)
+{
+  float t1 = bfabs(f.flap.fL)/(f.flap.fL + static_cast<float>(!static_cast<int>(bfabs(f.flap.fL)+0.9999999f)));
+  float t2 = static_cast<float>(!static_cast<int>(bfabs(f.flap.fL)/1.047197f));
+  f.flap.fR = f.flap.fL = (f.flap.fL * t2) + (1.047197f * ((t2 - 1.0f) * -1.0f * t1 ));
+}
+
+void PLANE::updateGPS(float lat, float alt, float Long, char hem1, char hem2, float Acc, int hrs, int min, int sec, int Numsat, int Hdop)
+{
+  loc.x = lat;
+  loc.y = alt;
+  loc.z = Long;
+  hemisphere.NS = hem1;
+  hemisphere.EW = hem2;
+  gpsAcc = Acc;
+  time.prev_hrs_ = time.hrs_;
+  time.prev_min_ = time.min_;
+  time.prev_sec_ = time.sec_;
+
+  time.hrs_ = hrs;
+  time.min_ = min;
+  time.sec_ = sec;
+
+  numsat = Numsat;
+  hdop = Hdop;
+
+  planeft.normalize(this);
+}
