@@ -38,23 +38,28 @@ float bcos(float x)
 
 float batan2(float y, float x)
 {
-  foriunion zt1;
-  zt1.f = bfabs(x) - bfabs(y);
+  foriunion zt1; 
+  
+  foriunion bx; foriunion by;
+  bx.f = bfabs(x); by.f = bfabs(y);
+  
+  zt1.f = bx.f - by.f;
   zt1.i = (!!(zt1.i & 0x80000000)) * 0x3F800000; //if x>=y zt1 = 0.0f else if x<y zt1 = 1.0f
 
   foriunion top; foriunion bottom; foriunion temp;
-  top.f = bfabs(x) * zt1.f;
+  
+  top.f = bx.f * zt1.f;
   zt1.i ^= 0x3F800000; //zt1 ^= 1.0f
-  temp.f = bfabs(y) * zt1.f;
+  temp.f = by.f * zt1.f;
   top.i |= temp.i;
 
   //if x>=y zt1 = 1.0f else if x<y zt1 = 0.0f
-  bottom.f = bfabs(x) * zt1.f;
+  bottom.f = bx.f * zt1.f;
   zt1.i ^= 0x3F800000; //zt1 ^= 1.0f
-  temp.f = bfabs(y) * zt1.f;
+  temp.f = by.f * zt1.f;
   bottom.i |= temp.i;
 
-  temp.f = bfabs(y);
+  temp.f = by.f;
   temp.i = (temp.i & 0x80000000) | 0x3F800000;
 
   /*zero div check. if bottom=0.0f, top also ==0.0f, so add 1.0f to bottom to prevent zero-div error, and still the result we need after the div*/
@@ -71,26 +76,25 @@ float batan2(float y, float x)
   t2 = t*t; t3 = t2*t; t5 = t3*t2;
 
   float32x2_t vt = {t3, t5};
-  float32x2_t vdiv = {3.0f, 5.0f};
+  float32x2_t vmul = {0.3333334f, 0.2f};
 
-  vt = vdivq_f32(vt, vdiv);
+  vt = vmulq_f32(vt, vmul);
 
-  float taylor = t;
-  taylor -= vget_lane_f32(vt, 0);
-  taylor += vget_lane_f32(vt, 1);
+  t -= vget_lane_f32(vt, 0);
+  t += vget_lane_f32(vt, 1);
 
-  taylor*=2.0f;
+  t*=2.0f;
 
-  taylor*=top.f;
+  t *= top.f;
 
   bottom.i = 0x3FC90FDB * (!!zt1.i);
   top.i = 0x3F800000 - (0x3F800000 * !!zt1.i);
   bottom.i |= top.i;
 
-  taylor += bottom.f;
-  taylor *= temp.f;
+  t += bottom.f;
+  t *= temp.f;
 
-  return taylor;
+  return t;
 }
 
 float bsqrt(float number) /*Quake III Arena inverse square root code*/
