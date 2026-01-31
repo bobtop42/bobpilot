@@ -5,8 +5,8 @@
 #include "sys/ioctl.h"
 #include "sys/types.h"
 #include "stdint.h"
-#include <fcntl.h>                  
-#include <cstdint>        
+#include <fcntl.h>
+#include <cstdint>
 
 class CONTROLLER
 {
@@ -17,33 +17,41 @@ void inputChannelData(PLANE* plane, uint8_t* buf, int start);
 void engageAP();
 void disengageAP();
 
-void fuseControls(PLANE* plane);
+void integrateControlls(PLANE* plane);
 
 CONTROLLER();
 
-uint8_t flags = 0x24;
+uint8_t flags = 0x2;
 /*
 0x01 correct crc
 0x02 AP control, SC = -100
-0x04 human control, SC = 0
 0x04 set hold pos, SC = 100
-0x08 SA bit
-0x10 adj flap?
+0x08 SA bit on/off
+0x10 adj flap
 0x20 landing/takeoff bit
+0x40 SE(push botton) on/off
 */
 
-void fuseAileron(FLAP *ap);
-void fuseElevator(FLAP *ep);
-void fuseThrottle(ATC * atc);
+void integrateAileron(FLAP *ap);
+void integrateElevator(FLAP *ep);
+void integrateThrottle(ATC * atc);
+void integrateFlap(FLAP *fp);
+void integrateRudder(FLAP *rp);
 
-void setAileron(FLAP* ap);
-void setElevator(FLAP* ep);
-void setThrottle(ATC* atc);
+void updateControllMode();
+void updateLandingMode();
 
-void engageFlaps();
-void disengageFlaps();
+int16_t airleron = 0;
+int16_t elevator = 0;
+int16_t throttle = 0;
+int16_t rudder = 0;
 
-uint16_t ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8, ch9, ch10;
+int8_t toggleable = 0x00;
+int8_t sa;
+
+uint16_t ail, ele, thr, rud, SA,SB, SC, SD, SE, SF;
+
+int fd;
 };
 
 #endif
