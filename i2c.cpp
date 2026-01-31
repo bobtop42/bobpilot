@@ -3,53 +3,7 @@
 
 I2C::I2C() {}
 
-int I2C::setUp()
-{
-    fd = open(dev.c_str(), O_RDWR);
-    if (fd < 0)
-    {
-        std::cerr << "failed to connect\n";
-        errorI2Cdevice = true;
-        return -2;
-    }
-    if (ioctl(fd, I2C_SLAVE, DEVICE_ADDR) < 0)
-    {
-        close(fd);
-        std::cerr << "failed to connect\n";
-        errorI2Cdevice = true;
-        return -3;
-    }
-
-    uint8_t config[5][2] =
-    {
-        {0x6B, 0x00},
-        {0x1B, 0x00},
-        {0x1C, 0x00},
-        {0x1A, 0x03},
-        {0x19, 0x09}
-    };
-
-    for (int i = 0; i < 5; ++i)
-    {
-        if (write(fd, config[i], 2) != 2)
-        {
-            std::cerr << "failed to config\n";
-            errorI2Cdevice = true;
-            return -1;
-        }
-    }
-
-    auto[axmt, aymt, azmt, gxmt, gymt, gzmt] = calibrate(3000);
-    if(std::isnan(axmt))
-        return -1;
-
-    axm = axmt; aym = aymt; azm = azmt;
-    gxm = gxmt; gym = gymt; gzm = gzmt;
-    
-    return 0;
-}
-
-int I2C::readdata(int buf_reg)
+int I2C::readdata()
 {
     buf[0] = 0x3B;
     if (write(fd, buf, 1) != 1)
@@ -61,7 +15,7 @@ int I2C::readdata(int buf_reg)
 
 int I2C::update(PLANE* plane)
 {
-    if (readdata(0x3B) != 0)
+    if (readdata() != 0)
         return -1;
 
     int16_t ax, ay, az, gx, gy, gz;
@@ -99,29 +53,10 @@ int I2C::update(PLANE* plane)
     return 0;
 }
 
-void I2C::updatePA(PLANE* plane)
-{
-    int check = update(plane);
-    if (check == -1)
-    {
-        check = errorhandler(-2);
-        if (check == 0)
-        {
-            update(plane);
-        }
-    }
-
-    busHealthCheck++;
-    if (busHealthCheck == 2000)
-    {
-        check = errorhandler(-1);
-        busHealthCheck = 0;
-    }
-}
 
 int I2C::errorhandler(int error)
 {
-  
+
   int solved;
   int step = 0;
   int s;
@@ -132,17 +67,17 @@ int I2C::errorhandler(int error)
 
   sc = (!(~error&0x6))<<2;
   sc |= (!(error&0x2))<<1;
-  sc |= (!(error+1)&0x1)&(!(error&0x2)>>1);
+  sc |= (!((error+1)&0x1))&(!(error&0x2)>>1);
 
   errorseq[0]-=!(error+2);
 
   int i = 0;
 
-  while(i<sc)
+  while(i < sc)
   {
     solved = errorhandlerswitchtable(errorseq[i+sc]);
     step = i;
-    i = (!!solved*i) | (!solved*sc) | ((!((i+sc)-3)*sc);
+    i = (!!solved*i) | (!solved*sc) | ((!((i+sc)-3)*sc));
   }
 
   if((step+s)<=3){close(fd); SHUTDOWNERROR = true; return -1;}
@@ -221,25 +156,25 @@ int I2C::errorhandlerswitchtable(int errorlvl)
 
 auto I2C::calibrate(int loops)
 {
-    int16_t zeros[6] = {0,0,0,0,0,0};
+    int16_t zero[6] = {0,0,0,0,0,0};
     uint16_t ax, ay, az, gx, gy, gz;
-    
-    for(i=0; i<loops; i++)
+
+    for(int i=0; i<loops; i++)
     {
-        if(readdata(0x33)!=0)
+        if(readdata()!=0)
             return std::make_tuple(NAN, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-        
+
         ax = (buf[0] << 8) | buf[1];
         ay = (buf[2] << 8) | buf[3];
         az = (buf[4] << 8) | buf[5];
         gx = (buf[8] << 8) | buf[9];
         gy = (buf[10] << 8) | buf[11];
         gz = (buf[12] << 8) | buf[13];
-        
+
         zero[0] += (double)ax/16384.0 * 9.8665;
         zero[1] += (double)ax/16384.0 * 9.8665;
         zero[2] += (double)ax/16384.0 * 9.8665;
-        
+
         constexpr double torad = 131.0f * (3.14159/180.0);
         zero[3] += (double)gx/torad;
         zero[4] += (double)gx/torad;
@@ -254,3 +189,69 @@ auto I2C::calibrate(int loops)
                            (float)zero[2], (float)zero[3],
                            (float)zero[4], (float)zero[5]);
 }
+
+void I2C::updatePA(PLANE* plane)
+{
+    int check = update(plane);
+    if (check == -1)
+    {
+        check = errorhandler(-2);
+        if (check == 0)
+        {
+            update(plane);
+        }
+    }
+
+    busHealthCheck++;
+    if (busHealthCheck == 2000)
+    {
+        check = errorhandler(-1);
+        busHealthCheck = 0;
+    }
+}
+
+  int I2C::setUp()
+  {
+      fd = open(dev.c_str(), O_RDWR);
+      if (fd < 0)
+      {
+          std::cerr << "failed to connect\n";
+          errorI2Cdevice = true;
+          return -2;
+      }
+      if (ioctl(fd, I2C_SLAVE, DEVICE_ADDR) < 0)
+      {
+          close(fd);
+          std::cerr << "failed to connect\n";
+          errorI2Cdevice = true;
+          return -3;
+      }
+
+      uint8_t config[5][2] =
+      {
+          {0x6B, 0x00},
+          {0x1B, 0x00},
+          {0x1C, 0x00},
+          {0x1A, 0x03},
+          {0x19, 0x09}
+      };
+
+      for (int i = 0; i < 5; ++i)
+      {
+          if (write(fd, config[i], 2) != 2)
+          {
+              std::cerr << "failed to config\n";
+              errorI2Cdevice = true;
+              return -1;
+          }
+      }
+
+      auto[axmt, aymt, azmt, gxmt, gymt, gzmt] = calibrate(3000);
+      if(std::isnan(axmt))
+          return -1;
+
+      axm = axmt; aym = aymt; azm = azmt;
+      gxm = gxmt; gym = gymt; gzm = gzmt;
+
+      return 0;
+  }
