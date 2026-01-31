@@ -8,10 +8,12 @@
 #include <unistd.h>
 #include "stdint.h"
 #include <ctime>
-#include <fcntl.h>                  
+#include <fcntl.h>
 #include <cstdint>        
 #include <iostream>
 #include <chrono>
+#include <tuple>
+#include <thread>
 
 
 class I2C
@@ -19,20 +21,28 @@ class I2C
 public:
 bool errorI2Cdevice;
 bool errorI2Cdata;
-int fd = -1;
+int fd = 0;
 std::string dev = "/dev/i2c-1";
 
 I2C();
 
 void updatePA(PLANE* plane);
+int update(PLANE *plane);
 int setUp();
 auto calibrate(int loops);
+
+int errorhandler(int error);
+int errorhandlerswitchtable(int errorlvl);
 
 private:
 //std::string dev = "/dev/i2c-1";
 uint8_t config[5][2];
-int16_t read16b(int fd, int buf_reg);
+
+uint8_t buf[14];
+int readdata();
 int16_t axm, aym, azm, gxm, gym, gzm;
+
+int busHealthCheck;
 };
 
 #endif
