@@ -52,6 +52,8 @@ int8_t sa = 0x00;
 
 
 void toggleSA();
+void updateLandingMode();
+void updateControlMode();
 
 int16_t ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8, ch9, ch10;
 
