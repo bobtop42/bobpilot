@@ -108,11 +108,11 @@ float32x2_t vs = {rplaneSlope2, pplaneSlope2};
 float32x2_t vh = vdup_n_f32(0.5f);; /*fill in with the vector fill cmd*/
 
 vs = vrecipsq_f32(vs);
-vr = vmulq_f32(vr, vs);
-vr = vmulq_f32(vr, vh);
+vr = vmul_f32(vr, vs);
+vr = vmul_f32(vr, vh);
 
-rradius2 = vgetq_lane_f32(vr, 0);
-pradius2 = vgetq_lane_f32(vr, 1);
+rradius2 = vget_lane_f32(vr, 0);
+pradius2 = vget_lane_f32(vr, 1);
 
 foriunion ra; foriunion pa;
 ra.f = qsqrt(rradius2); pa.f = qsqrt(pradius2);
