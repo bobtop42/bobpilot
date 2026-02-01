@@ -38,10 +38,12 @@ void integrateThrottle(ATC * atc);
 void integrateFlap(FLAP *fp);
 void integrateRudder(FLAP *rp);
 
+void toggleSA();
+
 void updateControlMode();
 void updateLandingMode();
 
-int16_t airleron = 0;
+int16_t aileron = 0;
 int16_t elevator = 0;
 int16_t throttle = 0;
 int16_t rudder = 0;
