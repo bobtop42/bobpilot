@@ -41,15 +41,27 @@ float toFeet(float meters)
 int round(float value);
 
 inline
-float latToFeet(float lat)
+float latToFeet(float radlat)
 {
-  return lat * 1014.688888;
+  return radlat * 20929460.706775f;
 }
 
 inline
-float longToFeet(float Long, float lat)
+float degLatToFeet(float deglat)
 {
-  return (bfabs(Long * bcos(lat) * 365288.0));
+  return deglat * 365288.0f;
+}
+
+inline
+float longToFeet(float radlong, float radlat)
+{
+  return (bfabs(radlong * bcos(radlat) * 131503680.0f));
+}
+
+inline
+float degLongToFeet(float deglong, float deglat)
+{
+  return (bfabs(deglong * bcos(deglat) * 365288.0f));
 }
 
 inline
@@ -140,6 +152,24 @@ inline void shutDownErrorCheck()
 }
 
 
+
+struct ERROR
+{
+  float roll;
+  float pitch;
+  float yaw;
+  
+  float rollWeight;
+  float pitchWeight;
+  float yawWeight;
+
+  void clamp();
+  void rollClamp();
+  void pitchClamp();
+  void yawClamp();
+};
+
+
 class PLANE;        
 template<typename T>
 class WPROUTE;
@@ -194,6 +224,8 @@ class PLANE
 {
 public:
 
+ERROR error;
+
 //waypoint data for gps
 angle WPA;
 pt3D loc;
@@ -202,7 +234,7 @@ WPROUTE<int> WPXYZ;
 //plane data from MPU 6050
 angle PA;
 float pAngle[3][3];
-long long int dt;
+long int dt;
 long long int timePrev;
 
 FLAP ep;
