@@ -38,7 +38,7 @@ void integrateThrottle(ATC * atc);
 void integrateFlap(FLAP *fp);
 void integrateRudder(FLAP *rp);
 
-void updateControllMode();
+void updateControlMode();
 void updateLandingMode();
 
 int16_t airleron = 0;
