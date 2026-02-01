@@ -81,7 +81,7 @@ void CONTROLLER::integrateRudder(FLAP *rp)
   rp->flap.fR = rp->flap.fL = rudder * static_cast<float>(!(0x2&flags));
 }
 
-void CONTROLLER::updateControllMode()
+void CONTROLLER::updateControlMode()
 {
   flags = (((flags&0x2)*!toggleable)|flags) | (((flags&0xFC)*toggleable)|(toggleable*((SA&0x7000)>>14)));
 }
