@@ -21,7 +21,7 @@ void targetPitch(float value, PLANE* plane);
 void targetPitch(PLANE* plane);
 void engaged();
 void disengaged();
-float update(PLANE* plane);
+void update(PLANE* plane);
 void setUp();
 void adjustElevator(float value, PLANE* plane);
 
