@@ -1,9 +1,9 @@
+#ifndef NAVSYS_H
+#define NAVSYS_H
 #include <cmath>
 #include "MATHLIB.h"
 #include "WPROUTE.h"
-#ifndef NAVSYS_H
-#define NAVSYS_H
-
+#include "bmath.h"
 //NOTE: add npc counter. Burrently only a hardcoded int
 
 class NAVSYS
@@ -12,15 +12,14 @@ public:
 
 int npc = 0;
 
-const float PI = 3.14159f;
-
 WPROUTE<int> WPXYZ;
-
 void setUpRoute();
 
 void wayPointAngleFinder(PLANE* plane);
 void planeAngleFinder(CKALMAN* ckalman, PLANE* plane, HMC::HMC* hmc); //fill in with kalman filter stuff later
 void updateNpc(PLANE* plane);
+
+void errorCalc(PLANE* plane);
 
 NAVSYS();
 
@@ -37,5 +36,7 @@ float px, py, pz;
 float wx, wy, wz;
 
 };
+
+union doriunion {double d; int64_t i;};
 
 #endif
