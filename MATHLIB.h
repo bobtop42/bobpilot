@@ -240,6 +240,7 @@ long long int timePrev;
 FLAP ep;
 FLAP ap;
 FLAP fp;
+FLAP rp;
 //aspeed 
 float speed;
 Time time;
