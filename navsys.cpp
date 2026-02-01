@@ -107,7 +107,7 @@ float32x2_t vr = {rradius2, pradius2};
 float32x2_t vs = {rplaneSlope2, pplaneSlope2};
 float32x2_t vh = vdup_n_f32(0.5f);; /*fill in with the vector fill cmd*/
 
-vs = vrecipsq_f32(vs);
+vs = vrecips_f32(vs);
 vr = vmul_f32(vr, vs);
 vr = vmul_f32(vr, vh);
 
