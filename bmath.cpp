@@ -39,15 +39,15 @@ float bcos(float x)
 float batan2(float y, float x)
 {
   foriunion zt1; 
-  
+
   foriunion bx; foriunion by;
   bx.f = bfabs(x); by.f = bfabs(y);
-  
+
   zt1.f = bx.f - by.f;
   zt1.i = (!!(zt1.i & 0x80000000)) * 0x3F800000; //if x>=y zt1 = 0.0f else if x<y zt1 = 1.0f
 
   foriunion top; foriunion bottom; foriunion temp;
-  
+
   top.f = bx.f * zt1.f;
   zt1.i ^= 0x3F800000; //zt1 ^= 1.0f
   temp.f = by.f * zt1.f;
@@ -78,7 +78,7 @@ float batan2(float y, float x)
   float32x2_t vt = {t3, t5};
   float32x2_t vmul = {0.3333334f, 0.2f};
 
-  vt = vmulq_f32(vt, vmul);
+  vt = vmul_f32(vt, vmul);
 
   t -= vget_lane_f32(vt, 0);
   t += vget_lane_f32(vt, 1);
