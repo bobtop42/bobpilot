@@ -27,10 +27,10 @@ void CONTROLLER::update(PLANE* plane)
       };
     }
 }
-  
+
 void CONTROLLER::inputChannelData(PLANE *plane, uint8_t *buf, int start)
 {
-  
+
   ail = ((buf[start]<<3) | (buf[start+1]>>5)) & 0x07FF;
   ele = ((buf[start+1]<<6) | (buf[start+2]>>2)) & 0x07FF;
   thr = ((buf[start+2]<<9) | (buf[start+3]<<1) | (buf[start+4]>>7)) & 0x07FF;
