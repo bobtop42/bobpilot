@@ -21,7 +21,7 @@ void targetRoll(float value, PLANE* plane);
 void targetRoll(PLANE* plane);
 void engaged();
 void disengaged();
-float update(PLANE* plane);
+void update(PLANE* plane);
 void setUp();
 void adjustAileron(float value, PLANE* plane);
 
