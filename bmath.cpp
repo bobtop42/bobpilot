@@ -114,7 +114,7 @@ float bsqrt(float number) /*Quake III Arena inverse square root code*/
   return 1.0f/y;
 }
 
-float bsqrt(float number) /*Quake III Arena inverse square root code*/
+float inverse_bsqrt(float number) /*Quake III Arena inverse square root code*/
 {
   long i;
   float x2, y;
@@ -137,4 +137,46 @@ float bfabs(float val)
   bfu.f = val;
   bfu.i &= 0x7FFFFFFF;
   return bfu.f;
+}
+
+float bln(float x)
+{
+    // normalize x = m * 2^e ---
+    uint32_t bits;
+    memcpy(&bits, &x, sizeof(bits));
+
+    int e = ((bits >> 23) & 0xFF) - 127;          // extract exponent
+    bits = (bits & 0x7FFFFF) | (127 << 23);      // force exponent to 127 -> m in [1,2)
+    float m;
+    memcpy(&m, &bits, sizeof(m));
+
+    // atanh transform ---
+    float z = (m - 1.0f) / (m + 1.0f);
+
+    //polynomial ---
+    float z2 = z * z;
+    float z3 = z2 * z;
+    float z5 = z3 * z2;
+    float z7 = z5 * z2;
+    float z9 = z7 * z2;
+
+    float ln_m = 2.0f * (z
+        + z3 * 0.3333333f
+        + z5 * 0.2000000f
+        + z7 * 0.1428571f
+        + z9 * 0.1111111f);
+
+    // add exponent contribution ---
+    return ln_m + e * 0.6931471805599453f;
+}
+
+float bpow_no_decimal(float x, float y)
+{
+    int i = static_cast<int>(y);
+    while(i>0)
+    {
+        x *= x;
+        i--;
+    }
+    return x;
 }
