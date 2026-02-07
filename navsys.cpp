@@ -71,14 +71,6 @@ void NAVSYS::updateNpc(PLANE* plane)
   routeCompleted = static_cast<uint8_t>(!wpaddr);
 }
 
-
-/*
-NOTE: The NAVSYS class is currently being redone in order to be more efficient. When completed, NAVSYS will no longer use trig. functions but rater a more linearized approach to calculating error. This means that the new system will not be usng radians or degrees to quatify errors. If anyone reading this has any suggestions please let me know.
-
-Moreover, other parts of the the AP are also being modified to work with the new system. Basically the ROLL, PITCH, and ATC classes are being "re-plumbed". Additionally the HOLD class will also see significant changes as well.
-
-I will temptorary be leaving the old code in place for now, so progression can be watched, or whatever the people who view this code do, can see the changes too, and not be shocked with one big update.
-*/
 void NAVSYS::errorCalc(PLANE *plane)
 {
 px = plane->pAngle[0][0];
@@ -105,9 +97,9 @@ float pradius2 = pradius * pradius;
 
 float32x2_t vr = {rradius2, pradius2};
 float32x2_t vs = {rplaneSlope2, pplaneSlope2};
-float32x2_t vh = vdup_n_f32(0.5f);; /*fill in with the vector fill cmd*/
+float32x2_t vh = vfill_f32(0.5f); /*fill in with the vector fill cmd*/
 
-vs = vrecips_f32(vs);
+vs = vrecip_f32(vs);
 vr = vmul_f32(vr, vs);
 vr = vmul_f32(vr, vh);
 
