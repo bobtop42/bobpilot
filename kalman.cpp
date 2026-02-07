@@ -1,7 +1,7 @@
 #include "kalman.h"
 #include "io.h"
 
-void KALMAN::xPred()
+void KALMAN::xPred(long int dt)
 {
   float AX[6];
   float BU [6];
@@ -197,8 +197,8 @@ void KALMAN::pushKalmandData(PLANE* plane)
 
 void KALMAN::loop(PLANE* plane)
 {
-  xPred();
-  pPred();
+  xPred(plane->dt);
+  pPred(plane->dt);
   kGain();
   measureUpdate(plane);
   updateState();
