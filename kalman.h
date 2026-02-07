@@ -2,6 +2,7 @@
 #define KALMAN_H
 #include "i2c.h"
 #include "MATHLIB.h"
+#include "arm_neon.h"
 
 class KALMAN
 {
@@ -10,9 +11,10 @@ float X[6][1];
 
 KALMAN();
 
+
 float setUp();
-void xPred();
-void pPred();
+void xPred(long int dt);
+void pPred(long int dt);
 void kGain();
 void measureUpdate(PLANE* plane);
 void updateState();
