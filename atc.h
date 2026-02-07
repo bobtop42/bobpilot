@@ -2,6 +2,7 @@
 #define ATC_H
 #include "pid.h"
 #include "MATHLIB.h"
+#include "bmath.h"
 
 class ATC
 {
@@ -27,7 +28,6 @@ ATC(int16_t speed, bool engaged);
 
 int16_t speed_;
 
-private:
 bool engaged_;
 float atcMod_ = 0.0f;
 
