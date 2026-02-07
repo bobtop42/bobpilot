@@ -86,6 +86,7 @@ void REAL::update()
 {
   if(engaged_)
   {
+    controller.update(&plane);
     mpu.updatePA(&plane);
     kalman.loop(&plane);
     gps.update(&plane);
@@ -137,6 +138,7 @@ void REAL::loop()
   }
 }
 */
+    
 
 void REAL::loop()
 {
@@ -148,10 +150,6 @@ void REAL::loop()
       while(flightComputer.routeCompleted!=0x00&&!SHUTDOWNERROR)
         {
           update();
-          if(controller.checkInput(false))
-          {
-            break;
-          }
         }
     };
     if(flightComputer.routeCompleted==0x00)
@@ -160,40 +158,27 @@ void REAL::loop()
       secondaryLoop();
     }
   }
-  else
-  {
-    if(controller.humanControl())
-    {
-      controller.loop();
-    }
-  }
 }
 
 void REAL::secondaryLoop()
 {
   while(true)
     {
-      if(!controller.interupt()||!controller.exitAutoPilot()||!SHUTDOWNERROR)
+      if(controller.exitAP() && !SHUTDOWNERROR)
       {
-        if(engaged_)
-        {
-          mpu.updatePA(&plane);
-          kalman.loop(&plane);
-          gps.update(&plane);
+        disengageAll();
+        shutdownAP();
+      }
+      mpu.updatePA(&plane);
+      kalman.loop(&plane);
+      gps.update(&plane);
 
-          holdComputer.holdCircle(50.0f, 150.0f, plane.loc.z, plane.loc.x, 0x01, &plane, &roll, &pitch, 10.0f);
-          atc.update(&plane);
-          
-          servos.updateServos(&plane);
-          
-          logger.log(&plane); 
-          controller.update(false);
-        }
-      }
-      else
-      {
-        disengaged();
-        break;
-      }
+      holdComputer.holdCircle(50.0f, 150.0f, plane.loc.z, plane.loc.x, 0x01, &plane, &roll, &pitch, 10.0f);
+      atc.update(&plane);
+
+      servos.updateServos(&plane);
+
+      logger.log(&plane); 
+      controller.update(&plane);
     }
 }
