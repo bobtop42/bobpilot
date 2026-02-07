@@ -18,6 +18,7 @@ void engageAP();
 void disengageAP();
 
 void integrateControlls(PLANE* plane);
+bool exitAP();
 
 CONTROLLER();
 
