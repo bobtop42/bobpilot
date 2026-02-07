@@ -6,12 +6,13 @@
 #include "i2c.h"
 #include "kalman.h"
 #include "logger.h"
-
+#include "navsys.h"
 #include "MATHLIB.h"
 #include "pca9685.h"
 #include "pid.h"
 #include "pitch.h"
 #include "roll.h"
+#include "controller.h"
 
 class REAL
 {
@@ -21,6 +22,7 @@ std::string filename = "logTemp.txt";
 public:
 NAVSYS flightComputer;
 HOLD holdComputer;
+CONTROLLER controller;
 PLANE plane;
 
 PITCH pitch{0.0f, 0.0f, false};
@@ -50,6 +52,8 @@ void engageAll();
 void disengageAll();
 void engaged();
 void disengaged();
+
+void shutdownAP();
 
 bool isRunning;
 bool setUp_ = false;
