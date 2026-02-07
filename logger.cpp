@@ -21,33 +21,33 @@ void LOGGER::log(PLANE* plane)
 
   o<<"$";
   //plane angle data
-  o<<plane->pAngle[0][0]<<"\t"<<plane->pAngle[0][1]<<"\t"<<plane->pAngle[0][2]<<std::endl;
-  o<<plane->pAngle[1][0]<<"\t"<<plane->pAngle[1][1]<<"\t"<<plane->pAngle[1][2]<<std::endl;
-  o<<plane->pAngle[2][0]<<"\t"<<plane->pAngle[2][1]<<"\t"<<plane->pAngle[2][2]<<std::endl;
+  o<<plane->pAngle[0][0]<<"\t"<<plane->pAngle[0][1]<<"\t"<<plane->pAngle[0][2]<<"\n";
+  o<<plane->pAngle[1][0]<<"\t"<<plane->pAngle[1][1]<<"\t"<<plane->pAngle[1][2]<<"\n";
+  o<<plane->pAngle[2][0]<<"\t"<<plane->pAngle[2][1]<<"\t"<<plane->pAngle[2][2]<<"\n";
 
   //pitch and roll data
-  o<<plane->PA.pitch<<"\t"<<plane->PA.roll<<std::endl;
+  o<<plane->PA.pitch<<"\t"<<plane->PA.roll<<"\n";
   o<<"\v";
   
   //current waypoint data
-  o<<plane->WPXYZ[plane->npc][0]<<"\t"<<plane->WPXYZ[plane->npc][1]<<"\t"<<plane->WPXYZ[plane->npc][2]<<std::endl;
+  o<<plane->WPXYZ.nextWPpos->lat<<"\t"<<plane->WPXYZ.nextWPpos->alt<<"\t"<<plane->WPXYZ.nextWPpos->lng<<"\n";
 
   //waypoint angle data
-  o<<plane->WPA.pitch<<"\t"<<plane->WPA.roll<<std::endl;
+  o<<plane->WPA.pitch<<"\t"<<plane->WPA.roll<<"\n";
   o<<"\v";
 
   //flap pos. data
-  o<<plane->ep.elevator.fL<<"\t"<<plane->ep.elevator.fR<<"\t\t"<<plane->ap.aileron.fL<<"\t"<<plane->ap.aileron.fR<<std::endl;
+  o<<plane->ep.flap.fL<<"\t"<<plane->ep.flap.fR<<"\t\t"<<plane->ap.flap.fL<<"\t"<<plane->ap.flap.fR<<"\n";
   o<<"\v\v";
   //UTC time (from satalite atomic clock)
-  o<<plane->time.hrs_<<":"<<plane->time.min_<<":"<<plane->time.sec_<<" UTC"<<std::endl;
+  o<<plane->time.hrs_<<":"<<plane->time.min_<<":"<<plane->time.sec_<<" UTC"<<"\n";
   //plane lat/long and alt
-  o<<plane->loc.x<<"\t"<<plane->loc.y<<"\t"<<plane->loc.z<<std::endl;
+  o<<plane->loc.x<<"\t"<<plane->loc.y<<"\t"<<plane->loc.z<<"\n";
   //gps accuracy
-  o<<"-"<<plane->gpsAcc<<std::endl;
+  o<<"-"<<plane->gpsAcc<<"\n";
   //hemisphere data
-  o<<"-"<<plane->hemisphere.NS<<"\t"<<plane->hemisphere.EW<<std::endl;
-  o<<"\v\v"<<std::endl;
+  o<<"-"<<plane->hemisphere.NS<<"\t"<<plane->hemisphere.EW<<"\n";
+  o<<"\v\v"<<"\n";
 
   o.close();
   //finish logging ATC, plane->AC[3], npc data, for this and parse log from an actual file. open the file, read the data, and parse it.
@@ -117,9 +117,9 @@ auto LOGGER::fillPlaneData(const std::string data, int *logPos, PLANE *plane)
         }
     }
 
-  plane->WPXYZ[npc][0] = WPX;
-  plane->WPXYZ[npc][1] = WPY;
-  plane->WPXYZ[npc][2] = WPZ;
+  plane->WPXYZ.nextWPpos->x = WPX;
+  plane->WPXYZ.nextWPpos->y = WPY;
+  plane->WPXYZ.nextWPpos->z = WPZ;
 
   plane->loc.x = pX;
   plane->loc.y = pY;
@@ -139,7 +139,7 @@ auto LOGGER::fillPlaneData(const std::string data, int *logPos, PLANE *plane)
   plane->AC[1] = accY;
   plane->AC[2] = accZ;
 
-  plane->npc = npc;
+  plane->WPXYZ.npc = npc;
 
   //work on this later
   plane->time.prev_hrs_ = plane->time.hrs_;
