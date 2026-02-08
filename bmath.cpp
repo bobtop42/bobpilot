@@ -97,12 +97,12 @@ float batan2(float y, float x)
   return t;
 }
 
-float bsqrt(float number) /*Quake III Arena inverse square root code*/
+float qsqrt(float number) /*Quake III Arena inverse square root code*/
 {
   long i;
   float x2, y;
   const float threehalfs = 1.5F;
-  
+
   x2 = number * 0.5F;
   y  = number;
   i  = * ( long * ) &y;                       // evil floating point bit level hacking
@@ -114,12 +114,12 @@ float bsqrt(float number) /*Quake III Arena inverse square root code*/
   return 1.0f/y;
 }
 
-float inverse_bsqrt(float number) /*Quake III Arena inverse square root code*/
+float qinverse_bsqrt(float number) /*Quake III Arena inverse square root code*/
 {
   long i;
   float x2, y;
   const float threehalfs = 1.5F;
-  
+
   x2 = number * 0.5F;
   y  = number;
   i  = * ( long * ) &y;                       // evil floating point bit level hacking
@@ -141,7 +141,7 @@ float bfabs(float val)
 
 float bln(float x)
 {
-    // normalize x = m * 2^e ---
+    // normalize x = m * 2^e
     uint32_t bits;
     memcpy(&bits, &x, sizeof(bits));
 
@@ -150,10 +150,10 @@ float bln(float x)
     float m;
     memcpy(&m, &bits, sizeof(m));
 
-    // atanh transform ---
+    // atanh transform
     float z = (m - 1.0f) / (m + 1.0f);
 
-    //polynomial ---
+    //polynomial
     float z2 = z * z;
     float z3 = z2 * z;
     float z5 = z3 * z2;
@@ -166,7 +166,7 @@ float bln(float x)
         + z7 * 0.1428571f
         + z9 * 0.1111111f);
 
-    // add exponent contribution ---
+    // add exponent contribution
     return ln_m + e * 0.6931471805599453f;
 }
 
@@ -179,4 +179,95 @@ float bpow_no_decimal(float x, float y)
         i--;
     }
     return x;
+}
+
+float bexp_decimal(float x) //e^x only for n in range [0,1]
+{
+  return 1.0f +
+         x * (1.0f + 
+         x * (0.49999994f + 
+         x * (0.16666572f + 
+         x * (0.04165735f + 
+         x * (0.00830136f + 
+         x * (0.0138637f))))));
+}
+
+float bexp_integer(float x) //e^x only for Integers
+{
+  float e = _e_;
+  int m = static_cast<int>(bfabs(x)); int i = 0; //sets up loop vals;
+  while(i<m){e *= _e_; i++;} //mul e by e m times
+  float inverse_check[2];
+  i = !(static_cast<int>(x)&0x80000000); //if x is neg, i = 1, else i = 0
+  inverse_check[i] = 1.0f; //if x is neg, 1/e^x, else e^x/1
+  inverse_check[!i] = e;
+  e = inverse_check[0] / inverse_check[1];
+  return e;
+}
+
+float bexp(float x) // e^x
+{
+  float integer = static_cast<int>(x);
+  float decimal = x - integer;
+  float number = bexp_integer(integer) * bexp_decimal(decimal);
+  return number;
+}
+
+float bpow(float x, float y) /*x^y = 2^k * e ^ y(ln m + e ln 2) - k ln 2 */
+{
+    /*
+    x^y = 2^k * e ^ y(ln m + e ln 2) - k ln 2 
+
+    where:
+      x = m * e^2
+      k = trunc (y (ln m + e ln 2) * (1/ ln 2))
+    */
+    uint32_t bits;
+    memcpy(&bits, &x, sizeof(bits));
+
+    int e = ((bits >> 23) & 0xFF) - 127;          // extract exponent
+    bits = (bits & 0x7FFFFF) | (127 << 23);      // force exponent to 127 -> m in [1,2)
+    float m;
+    memcpy(&m, &bits, sizeof(m));
+
+    float YlnX = y * (bln(m) + 3.411429f); /* y ln x*/
+    float k = btrunc(YlnX * 1.442695f); /*(y ln x) / ln 2*/
+    float r = YlnX - k * 0.69314718f; /*XYmain final calc for now*/
+
+    /*2 ^ trunc((y ln x) / ln 2)*/
+    uint32_t exp_bits = ((int)k + 127) << 23;
+    float pow2k;
+    memcpy(&pow2k, &exp_bits, sizeof(pow2k));
+
+    float expR = bexp(r);
+
+    return pow2k * expR;
+}
+
+float sigmoid(float x)
+{
+  return 1.0f / (1.0f + bexp(-x));
+}
+
+float relu(float x)
+{
+  foriunion x_peicewise; x_peicewise.f = x;
+  foriunion return_val;
+  return_val.i = ((!(x_peicewise.i & 0x80000000)) * x_peicewise.i) | (!!(x_peicewise.i & 0x80000000) * 0x3F800000);
+  return return_val.f;
+}
+
+float sigmoid_derivative(float x)
+{
+  float sigmoid_x = sigmoid(x);
+  return sigmoid_x * (1.0f - sigmoid_x);
+}
+
+float relu_derivative(float x) //relu derivative, but undefined (x = 0) returns 0.0f
+{
+  foriunion x_peicewise; x_peicewise.f = x;
+  foriunion return_val;
+  return_val.i = !!(x_peicewise.i & 0x7FFFFFFF) * 0x3F800000;
+  return_val.i ^= (!!(x_peicewise.i & 0x80000000)) * return_val.i;
+  return return_val.f;
 }
