@@ -215,6 +215,22 @@ float bexp(float number) // e^x
   return number;
 }
 
+float twopowx_integer(float x) //e^x only for Integers
+{
+  foriunion two; two.f = 2.0f;
+  int m = static_cast<int>(bfabs(x)); int i = 1; //sets up loop vals;
+  while(i<m){two.f *= 2.0f; i++;} //mul 2 by 2 m times
+  float inverse_check[2];
+  i = !(static_cast<int>(x)&0x80000000); //if x is neg, i = 1, else i = 0
+  inverse_check[i] = 1.0f; //if x is neg, 1/2^x, else 2^x/1
+  inverse_check[!i] = two.f;
+  two.f = inverse_check[0] / inverse_check[1];
+  i = !static_cast<int>(bfabs(x)+0.9999999f);
+  two.i = (!i * two.i) | (i * 0x3F800000);
+  return two.f;
+}
+
+
 float bpow(float x, float y) /*x^y = 2^k * e ^ y(ln m + e ln 2) - k ln 2 */
 {
     /*
@@ -224,26 +240,17 @@ float bpow(float x, float y) /*x^y = 2^k * e ^ y(ln m + e ln 2) - k ln 2 */
       x = m * e^2
       k = trunc (y (ln m + e ln 2) * (1/ ln 2))
     */
-    uint32_t bits;
-    memcpy(&bits, &x, sizeof(bits));
+    float m = x * 0.151953223258f;
+    float lnm = bln(m) + 1.88416938536f;
+    
+    float k = btrunc(y * lnm * 1.44269504089f);
+    
+    float r = t - k * LN2_HI;
+    r -= k * LN2_LO;
 
-    int e = ((bits >> 23) & 0xFF) - 127;          // extract exponent
-    bits = (bits & 0x7FFFFF) | (127 << 23);      // force exponent to 127 -> m in [1,2)
-    float m;
-    memcpy(&m, &bits, sizeof(m));
-
-    float YlnX = y * (bln(m) + 3.411429f); /* y ln x*/
-    float k = btrunc(YlnX * 1.442695f); /*(y ln x) / ln 2*/
-    float r = YlnX - k * 0.69314718f; /*XYmain final calc for now*/
-
-    /*2 ^ trunc((y ln x) / ln 2)*/
-    uint32_t exp_bits = ((int)k + 127) << 23;
-    float pow2k;
-    memcpy(&pow2k, &exp_bits, sizeof(pow2k));
-
-    float expR = bexp(r);
-
-    return pow2k * expR;
+    float pow = twopowx_integer(k) * bexp(r);
+    
+    return pow;
 }
 
 float sigmoid(float x)
