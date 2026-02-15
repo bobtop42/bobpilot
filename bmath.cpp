@@ -181,35 +181,37 @@ float bpow_no_decimal(float x, float y)
     return x;
 }
 
-float bexp_decimal(float x) //e^x only for n in range [0,1]
+float bexp_decimal(float x)
 {
-  return 1.0f +
-         x * (1.0f + 
-         x * (0.49999994f + 
-         x * (0.16666572f + 
-         x * (0.04165735f + 
-         x * (0.00830136f + 
-         x * (0.0138637f))))));
+    return 1.0f +
+           x * (1.0f+
+           x * (0.49999994f +
+           x * (0.16666572f +
+           x * (0.04165734f +
+           x * (0.00830136f +
+           x * 0.0138537f)))));
 }
 
 float bexp_integer(float x) //e^x only for Integers
 {
-  float e = _e_;
-  int m = static_cast<int>(bfabs(x)); int i = 0; //sets up loop vals;
-  while(i<m){e *= _e_; i++;} //mul e by e m times
+  foriunion e; e.f = _e_;
+  int m = static_cast<int>(bfabs(x)); int i = 1; //sets up loop vals;
+  while(i<m){e.f *= _e_; i++;} //mul e by e m times
   float inverse_check[2];
   i = !(static_cast<int>(x)&0x80000000); //if x is neg, i = 1, else i = 0
   inverse_check[i] = 1.0f; //if x is neg, 1/e^x, else e^x/1
-  inverse_check[!i] = e;
-  e = inverse_check[0] / inverse_check[1];
-  return e;
+  inverse_check[!i] = e.f;
+  e.f = inverse_check[0] / inverse_check[1];
+  i = !static_cast<int>(bfabs(x)+0.9999999f);
+  e.i = (!i * e.i) | (i * 0x3F800000);
+  return e.f;
 }
 
-float bexp(float x) // e^x
+float bexp(float number) // e^x
 {
-  float integer = static_cast<int>(x);
-  float decimal = x - integer;
-  float number = bexp_integer(integer) * bexp_decimal(decimal);
+  float integer = static_cast<int>(number);
+  float decimal = number - integer;
+  number = bexp_integer(integer) * bexp_decimal(decimal);
   return number;
 }
 
