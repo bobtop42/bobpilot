@@ -334,3 +334,21 @@ int32_t offbits(float f1, float f2)
     }
     return bits;
 }
+
+static int32_t float_to_int(float f)
+{
+    int32_t i;
+    memcpy(&i, &f, sizeof(i));
+    
+    if (i < 0)
+        i = 0x80000000 - i;
+
+    return i;
+}
+
+int32_t ulp(float a, float b)
+{
+    int32_t ia = float_to_int(a);
+    int32_t ib = float_to_int(b);
+    return abs(ia - ib);
+}
