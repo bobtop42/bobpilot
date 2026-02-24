@@ -40,3 +40,6 @@ float sigmoid_derivative(float x); // done
 float relu_derivative(float x); //done
 
 union foriunion {float f; int i;};
+
+int32_t offbits(float f1, float f2);
+int32_t ulp(float a, float b);
