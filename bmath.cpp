@@ -183,13 +183,51 @@ float bpow_no_decimal(float x, float y)
 
 float bexp_decimal(float x)
 {
-    return 1.0f +
-           x * (1.0f+
-           x * (0.49999994f +
-           x * (0.16666572f +
-           x * (0.04165734f +
-           x * (0.00830136f +
-           x * 0.0138537f)))));
+    
+    
+    #define EXP_C0 1.0000000000f
+    #define EXP_C1 1.0000000000f
+    #define EXP_C2 0.4999999702f
+    #define EXP_C3 0.1666666567f
+    #define EXP_C4 0.0416666418f
+    #define EXP_C5 0.0083333310f
+    #define EXP_C6 0.0013888887f
+    #define EXP_C7 0.0001984127f
+    #define EXP_C8 0.0000248016f
+    
+    #define EXP_075 2.11700000166f
+    
+    float u = x - 0.75f;
+    
+    float sum;
+  
+    sum = u * EXP_C8;
+    sum += EXP_C7;
+    sum *= u;
+    sum += EXP_C6;
+    sum *= u;
+    sum += EXP_C5;
+    sum *= u;
+    sum += EXP_C4;
+    sum *= u;
+    sum += EXP_C3;
+    sum *= u;
+    sum += EXP_C2;
+    sum *= u;
+    sum += EXP_C1;
+    sum *= u;
+    sum += EXP_C0;
+    sum *= EXP_075;
+    
+    return sum;
+  
+    #undef EXP_C0
+    #undef EXP_C1
+    #undef EXP_C2
+    #undef EXP_C3
+    #undef EXP_C4
+    #undef EXP_C5
+    #undef EXP_C6
 }
 
 float bexp_integer(float x) //e^x only for Integers
@@ -279,4 +317,20 @@ float relu_derivative(float x) //relu derivative, but undefined (x = 0) returns 
   return_val.i = !!(x_peicewise.i & 0x7FFFFFFF) * 0x3F800000;
   return_val.i ^= (!!(x_peicewise.i & 0x80000000)) * return_val.i;
   return return_val.f;
+}
+
+int32_t offbits(float f1, float f2)
+{
+    int32_t i1,i2;
+    i1 = *(int32_t*)& f1;
+    i2 = *(int32_t*)& f2;
+    int32_t u = abs(i1-i2);
+    int bits = 0; int bc = 1;
+    
+    for(int i=0; i<31; i++)
+    {
+        bits += !!(u & bc);
+        bc<<=1;
+    }
+    return bits;
 }
