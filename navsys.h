@@ -5,6 +5,9 @@
 #include "WPROUTE.h"
 #include "bmath.h"
 //NOTE: add npc counter. Burrently only a hardcoded int
+#ifdef signbit
+#define signbit 0x80000000
+#endif
 
 class NAVSYS
 {
