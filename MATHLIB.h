@@ -55,7 +55,7 @@ float degLatToFeet(float deglat)
 inline
 float longToFeet(float radlong, float radlat)
 {
-  return (bfabs(radlong * bcos(radlat) * 131503680.0f));
+  return (bfabs(radlong * bcos(radlat) * 365288.0f));
 }
 
 inline
@@ -223,18 +223,18 @@ float r[2][2];
 class PLANE
 {
 public:
-
 ERROR error;
+
 
 //waypoint data for gps
 angle WPA;
-pt3D loc;
 
+pt3D loc;
 WPROUTE<int> WPXYZ;
 //plane data from MPU 6050
 angle PA;
 float pAngle[3][3];
-long int dt;
+long long int dt;
 long long int timePrev;
 
 FLAP ep;
@@ -265,9 +265,9 @@ inline void normalize(PLANE *plane)
   wyft = plane->WPXYZ.nextWPpos->y;
   wzft = plane->WPXYZ.nextWPpos->z;
 
-  pxft = longToFeet(plane->loc.x, plane->loc.z);
+  pxft = degLongToFeet(plane->loc.x, plane->WPXYZ.nextWPpos->z);
   pyft = plane->loc.y;
-  pzft = latToFeet(plane->loc.z);
+  pzft = degLatToFeet(plane->loc.z);
 }
 };
 
