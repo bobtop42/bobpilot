@@ -73,64 +73,106 @@ void NAVSYS::updateNpc(PLANE* plane)
 
 void NAVSYS::errorCalc(PLANE *plane)
 {
-px = plane->pAngle[0][0];
-py = plane->pAngle[0][1];
-pz = plane->pAngle[0][2];
+//TO-DO:
+//fix overflow issues. radius^2 is often too big. maybe downscale the feet before calcs?
+//try maybe squashing all numbers into a smaller range. may increase accuracy because of
+//higher density of representable numbers closer to zero. So...win/win?
+//
+//Also look into why the numbers were getting messed up when we didnt normalize. possibly
+//may have been because we were to close to zero, and went negative somewhere.
+//
+//Overall, mathamatically, the concept are there. Just need to look into edge cases. like
+//nans esp overflow, div by zero and where to correct with stuff like n = n!=0 ? 1 : n
+//etc to eliminate edge cases and still produce expected outputs but with safe numbers.
+//
+//When finished, remeber to reveiw code for bug fixes line by line with old code to
+//properly conver fixed code with initial code/structures/func. calls. Ex: the
+//normalazation func. error because of two different feet converstions, leading to
+//incorrect subtractions, despite (for ex.) being at the same long.
+//
+//***Remeber to uncomment the vectorized and ARM-based LOCs before commiting to repo***
+//
+//last updated: 2/19/26, 2:46pm
 
-float rplaneSlope = px/pz;
+foriunion pxv; pxv.f = plane->pAngle[0][0];
+foriunion pyv; pyv.f = plane->pAngle[0][1];
+foriunion pzv; pzv.f = plane->pAngle[0][2];
 
-foriunion x; foriunion y; foriunion z;
+uint8_t flags = !(pxv.i & 0x7FFFFFFF);
 
-x.f = longToFeet( plane->loc.z, plane->loc.x) - plane->planeft.wxft;
-y.f = plane->loc.y - plane->planeft.wyft;
-z.f = latToFeet( plane->loc.z) - plane->planeft.wzft;
+pxv.i = (!(pxv.i & 0x7FFFFFFF) * 0x3F800000) | ((pxv.i & 0x7FFFFFFF) * pxv.i);
+float rslope = pzv.f/pxv.f;
+
+//LOOK INTO SLOPE CALC!!!
+float t1, t2; foriunion t3;
+t1 = (pxv.f * 0.0001f); t1 *= t1;
+t2 = (pzv.f * 0.0001f); t2 *= t2;
+
+t3.f = qsqrt(t1 + t2);
+flags |= (!(t3.i & 0x7FFFFFFF)) <<1;
+t3.i = (!(t3.i & 0x7FFFFFFF) * 0x3F800000) | ((t3.i & 0x7FFFFFFF) * t3.i);
+t2 = t3.f;
+
+t3.f = (pyv.f * 0.0001f); t3.f *= t3.f;
+
+float pslope = (t3.f / t2) * 100.0f;
+
+foriunion  x; foriunion y ; foriunion  z;
+foriunion rx;               foriunion rz;
+foriunion px; foriunion py;
+
+x.f = (plane->planeft.pxft - plane->planeft.wxft) * 0.001f; 
+y.f = (plane->planeft.pyft - plane->planeft.wyft) * 0.001f; 
+std::cout<<"y.f: "<<y.f<<"\n";
+z.f = (plane->planeft.pzft - plane->planeft.wzft) * 0.001f; 
 
 float rradius = qsqrt(x.f * x.f + z.f * z.f);
-float rplaneSlope2 = rplaneSlope * rplaneSlope;
-float rradius2 = rradius * rradius;
 
-float rx2z2 = qsqrt( px * px + pz * pz);
-float pplaneSlope = py / rx2z2;
-float pplaneSlope2 = pplaneSlope * pplaneSlope;
-float pradius = qsqrt( rradius2 + y.f * y.f);
-float pradius2 = pradius * pradius;
+float u, v, w;
+u = rradius * 0.001f;
+v = y.f * 0.001f;
 
-float32x2_t vr = {rradius2, pradius2};
-float32x2_t vs = {rplaneSlope2, pplaneSlope2};
-float32x2_t vh = vld1q_f32(0.5f); /*fill in with the vector fill cmd*/
-
-vs = vrecps_f32(vs);
-vr = vmul_f32(vr, vs);
-vr = vmul_f32(vr, vh);
-
-rradius2 = vget_lane_f32(vr, 0);
-pradius2 = vget_lane_f32(vr, 1);
+float pradius = qsqrt(u + v) * 31.62278f;
 
 foriunion ra; foriunion pa;
-ra.f = qsqrt(rradius2); pa.f = qsqrt(pradius2);
+ra.f = rradius / qsqrt(rslope * rslope + 1.0f);
+pa.f = pradius / qsqrt(pslope * pslope + 1.0f);
 
-px = ra.f; pz = ra.f * rplaneSlope;
-py = pa.f * pplaneSlope; /*check the mul*/
+float ratx = static_cast<float>(!(flags & 0x1));
+float ratz = static_cast<float>(flags & 0x1) * rradius;
 
-float rwpSlope = z.f/x.f; float pwpSlope = y.f/rradius;
+//add +/- inf det. and make rz = rradius
+rx.f = ra.f * ratx; rz.f = ra.f * rslope;
+rz.f = ratx * rz.f + ratz;
 
-ra.f *= rwpSlope; pa.f *= pwpSlope;
-ra.f -= px; ra.i &= 0x80000000;
-pa.f -= rx2z2; pa.i &= 0x80000000;
+float patx = static_cast<float>(!(flags & 0x04)); //add all flags correctly to variable
+float paty = static_cast<float>(!!(flags & 0x04)) * pradius;
 
-px -= plane->planeft.wxft;
-py -= plane->planeft.wyft;
-pz -= plane->planeft.wzft;
+px.f = pa.f * patx; py.f = pa.f * pslope;
+py.f = patx * py.f + paty;
+
+px.i = (px.i & 0x7FFFFFFF) | (static_cast<int32_t>(plane->pAngle[0][0]) & signbit);
+rx.i = (rx.i & 0x7FFFFFFF) | (static_cast<int32_t>(plane->pAngle[0][0]) & signbit);
+py.i = (py.i & 0x7FFFFFFF) | (static_cast<int32_t>(plane->pAngle[0][1]) & signbit);
+rz.i = (rz.i & 0x7FFFFFFF) | (static_cast<int32_t>(plane->pAngle[0][2]) & signbit);
 
 foriunion rerror; foriunion perror;
-rerror.f = qsqrt(px * px + pz * pz) / (2.0f *rradius);
-perror.f = qsqrt(py * py + rradius * rradius) / (2.0f *pradius);
 
-rerror.i |= ra.i ^ (x.i & 0x80000000);
-x.f = rradius; //check this line
-perror.i |= pa.i ^ (x.i & 0x80000000); //check this line too
+rerror.f = rx.f * rslope; perror.f * px.f;
+rerror.f -= rz.f; rerror.i = (rerror.i & signbit) | 0x3F800000;
+perror.f -= py.f; perror.i = (perror.i & signbit) | 0x3F800000;
 
-plane->error.roll = rerror.f * 3.14159f;
-plane->error.pitch = perror.f *3.14159f;
-/*look into weighing the errors*/
+perror.i ^= px.i & signbit;
+rerror.i ^= rx.i & signbit;
+
+t1 = x.f - rx.f; t2 = z.f - rz.f;
+rerror.f = qsqrt(t1 * t1 + t2 * t2);
+rerror.f = (rerror.f / rradius) * (1.0f / rradius);
+
+t1 = x.f - px.f; t2 = y.f - py.f;
+perror.f = qsqrt(t1 * t1 + t2 * t2);
+perror.f = (perror.f / pradius) * (1.0f / pradius);
+
+plane->error.roll = rerror.f;
+plane->error.pitch = perror.f;
 }
