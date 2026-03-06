@@ -99,3 +99,49 @@ void PLANE::updateGPS(float lat, float alt, float Long, char hem1, char hem2, fl
 
   planeft.normalize(this);
 }
+
+void ERROR::clamp()
+{
+  foriunion t; int32_t s; foriunion t2;
+  t.f = roll; s = t.i & 0x80000000;
+  t2.f = bfabs(t.f); t2.i -= 0x3EAAAAAB;
+  t.i = (t.i * (!!(t2.i & 0x80000000))) | (0x3EAAAAAB * (!(t2.i & 0x80000000)));
+  t.i |= s; roll = t.f;
+  
+  t.f = pitch; s = t.i & 0x80000000;
+  t2.f = bfabs(t.f); t2.i -= 0x3EAAAAAB;
+  t.i = (t.i * (!!(t2.i & 0x80000000))) | (0x3EAAAAAB * (!(t2.i & 0x80000000)));
+  t.i |= s; pitch = t.f;
+
+  t.f = yaw; s = t.i & 0x80000000;
+  t2.f = bfabs(t.f); t2.i -= 0x3EAAAAAB;
+  t.i = (t.i * (!!(t2.i & 0x80000000))) | (0x3EAAAAAB * (!(t2.i & 0x80000000)));
+  t.i |= s; yaw = t.f;
+}
+
+void ERROR::rollClamp()
+{
+  foriunion t; int32_t s; foriunion t2;
+  t.f = roll; s = t.i & 0x80000000;
+  t2.f = bfabs(t.f); t2.i -= 0x3EAAAAAB;
+  t.i = (t.i * (!!(t2.i & 0x80000000))) | (0x3EAAAAAB * (!(t2.i & 0x80000000)));
+  t.i |= s; roll = t.f;
+}
+
+void ERROR::pitchClamp()
+{
+  foriunion t; int32_t s; foriunion t2;
+  t.f = pitch; s = t.i & 0x80000000;
+  t2.f = bfabs(t.f); t2.i -= 0x3EAAAAAB;
+  t.i = (t.i * (!!(t2.i & 0x80000000))) | (0x3EAAAAAB * (!(t2.i & 0x80000000)));
+  t.i |= s; pitch = t.f;
+}
+
+void ERROR::yawClamp()
+{
+  foriunion t; int32_t s; foriunion t2;
+  t.f = yaw; s = t.i & 0x80000000;
+  t2.f = bfabs(t.f); t2.i -= 0x3EAAAAAB;
+  t.i = (t.i * (!!(t2.i & 0x80000000))) | (0x3EAAAAAB * (!(t2.i & 0x80000000)));
+  t.i |= s; yaw = t.f;
+}
