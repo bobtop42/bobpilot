@@ -215,8 +215,7 @@ float bexp(float x) // e^x
   float number = bexp_integer(integer) * bexp_decimal(decimal);
   return number;
 }
-extern "C"
-{
+
 float bldexp(float x, int e)
 {
     foruiunion v; v.f = x;
@@ -229,7 +228,6 @@ float bldexp(float x, int e)
     v.ui = (v.ui & 0x807FFFFF) | (exponent << 23);
     v.ui = (v.ui * !(exponentOverflowCheck | exponentUnderflowCheck)) | ((!((uint32_t)exponentOverflowCheck)) * 0x7F800000) | (!((uint32_t)exponentUnderflowCheck));
     return v.f;
-}
 }
 
 float bpow(float x, float y) /*x^y = 2^k * e ^ y(ln m + e ln 2) - k ln 2 */
