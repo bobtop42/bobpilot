@@ -3,7 +3,8 @@
 #include "stdint.h"
 #include <cstring>
 #define _e_ 2.7182818284590452353602874713527f
-
+#define LN2_HI 0.6931457519f
+#define LN2_LO 1.42860677e-6f
 #ifndef signbit
 #define signbit 0x80000000
 #endif
@@ -33,7 +34,7 @@ float bpow(float x, float y); //done
 float bexp_decimal(float x); //done
 float bexp_no_decimal(float x); //done
 float bexp(float x); //done
-extern "C"{ float bldexp(float x, int e); }
+float bldexp(float x, int e);
 
 float sigmoid(float x); //done
 float relu(float x); //done
@@ -45,4 +46,7 @@ uint8_t validate_number(float n);
 
 union foriunion {float f; int i;};
 union foruiunion {float f; uint32_t ui;};
+
+int32_t offbits(float f1, float f2);
+int32_t ulp(float a, float b);
 }
