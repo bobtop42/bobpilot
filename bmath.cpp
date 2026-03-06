@@ -1,5 +1,7 @@
 #include "bmath.h"
 
+extern "C"
+{
 float bsin(float x)
 {
   float x2, x3, x5, x7, x9;
@@ -172,102 +174,63 @@ float bln(float x)
 
 float bpow_no_decimal(float x, float y)
 {
-    int i = static_cast<int>(y);
-    while(i>0)
+  int i = static_cast<int>(y);
+  float x_return = x;
+  while(i>0)
     {
-        x *= x;
-        i--;
+      x_return *= x;
+      i--;
     }
-    return x;
+  return x_return;
 }
 
-float bexp_decimal(float x)
+float bexp_decimal(float x) //e^x only for n in range [0,1]
 {
-    
-    
-    #define EXP_C0 1.0000000000f
-    #define EXP_C1 1.0000000000f
-    #define EXP_C2 0.4999999702f
-    #define EXP_C3 0.1666666567f
-    #define EXP_C4 0.0416666418f
-    #define EXP_C5 0.0083333310f
-    #define EXP_C6 0.0013888887f
-    #define EXP_C7 0.0001984127f
-    #define EXP_C8 0.0000248016f
-    
-    #define EXP_075 2.11700000166f
-    
-    float u = x - 0.75f;
-    
-    float sum;
-  
-    sum = u * EXP_C8;
-    sum += EXP_C7;
-    sum *= u;
-    sum += EXP_C6;
-    sum *= u;
-    sum += EXP_C5;
-    sum *= u;
-    sum += EXP_C4;
-    sum *= u;
-    sum += EXP_C3;
-    sum *= u;
-    sum += EXP_C2;
-    sum *= u;
-    sum += EXP_C1;
-    sum *= u;
-    sum += EXP_C0;
-    sum *= EXP_075;
-    
-    return sum;
-  
-    #undef EXP_C0
-    #undef EXP_C1
-    #undef EXP_C2
-    #undef EXP_C3
-    #undef EXP_C4
-    #undef EXP_C5
-    #undef EXP_C6
+  return 1.0f +
+         x * (1.0f + 
+         x * (0.49999994f + 
+         x * (0.16666572f + 
+         x * (0.04165735f + 
+         x * (0.00830136f + 
+         x * (0.0138637f))))));
 }
 
 float bexp_integer(float x) //e^x only for Integers
 {
-  foriunion e; e.f = _e_;
-  int m = static_cast<int>(bfabs(x)); int i = 1; //sets up loop vals;
-  while(i<m){e.f *= _e_; i++;} //mul e by e m times
+  float e = _e_;
+  int m = static_cast<int>(bfabs(x)); int i = 0; //sets up loop vals;
+  while(i<m){e *= _e_; i++;} //mul e by e m times
   float inverse_check[2];
   i = !(static_cast<int>(x)&0x80000000); //if x is neg, i = 1, else i = 0
   inverse_check[i] = 1.0f; //if x is neg, 1/e^x, else e^x/1
-  inverse_check[!i] = e.f;
-  e.f = inverse_check[0] / inverse_check[1];
-  i = !static_cast<int>(bfabs(x)+0.9999999f);
-  e.i = (!i * e.i) | (i * 0x3F800000);
-  return e.f;
+  inverse_check[!i] = e;
+  e = inverse_check[0] / inverse_check[1];
+  return e;
 }
 
-float bexp(float number) // e^x
+float bexp(float x) // e^x
 {
-  float integer = static_cast<int>(number);
-  float decimal = number - integer;
-  number = bexp_integer(integer) * bexp_decimal(decimal);
+  float integer = static_cast<int>(x);
+  float decimal = x - integer;
+  float number = bexp_integer(integer) * bexp_decimal(decimal);
   return number;
 }
-
-float twopowx_integer(float x) //e^x only for Integers
+extern "C"
 {
-  foriunion two; two.f = 2.0f;
-  int m = static_cast<int>(bfabs(x)); int i = 1; //sets up loop vals;
-  while(i<m){two.f *= 2.0f; i++;} //mul 2 by 2 m times
-  float inverse_check[2];
-  i = !(static_cast<int>(x)&0x80000000); //if x is neg, i = 1, else i = 0
-  inverse_check[i] = 1.0f; //if x is neg, 1/2^x, else 2^x/1
-  inverse_check[!i] = two.f;
-  two.f = inverse_check[0] / inverse_check[1];
-  i = !static_cast<int>(bfabs(x)+0.9999999f);
-  two.i = (!i * two.i) | (i * 0x3F800000);
-  return two.f;
-}
+float bldexp(float x, int e)
+{
+    foruiunion v; v.f = x;
+    uint32_t exponent = (v.ui >> 23) & 0xFF;
+    int64_t exponentOverflowCheck = !!((static_cast<int64_t>(0xFFFFFFFF - exponent) - e) & signbit);
+    int64_t exponentUnderflowCheck = !!((static_cast<int64_t>(exponent) + e) & signbit);
 
+    exponent += e;
+
+    v.ui = (v.ui & 0x807FFFFF) | (exponent << 23);
+    v.ui = (v.ui * !(exponentOverflowCheck | exponentUnderflowCheck)) | ((!((uint32_t)exponentOverflowCheck)) * 0x7F800000) | (!((uint32_t)exponentUnderflowCheck));
+    return v.f;
+}
+}
 
 float bpow(float x, float y) /*x^y = 2^k * e ^ y(ln m + e ln 2) - k ln 2 */
 {
@@ -278,21 +241,39 @@ float bpow(float x, float y) /*x^y = 2^k * e ^ y(ln m + e ln 2) - k ln 2 */
       x = m * e^2
       k = trunc (y (ln m + e ln 2) * (1/ ln 2))
     */
-    float m = x * 0.151953223258f;
-    float lnm = bln(m) + 1.88416938536f;
-    
-    float k = btrunc(y * lnm * 1.44269504089f);
-    
-    float r = t - k * LN2_HI;
-    r -= k * LN2_LO;
+    uint32_t bits;
+    memcpy(&bits, &x, sizeof(bits));
 
-    float pow = twopowx_integer(k) * bexp(r);
-    
-    return pow;
+    int e = ((bits >> 23) & 0xFF) - 127;          // extract exponent
+    bits = (bits & 0x7FFFFF) | (127 << 23);      // force exponent to 127 -> m in [1,2)
+    float m;
+    memcpy(&m, &bits, sizeof(m));
+
+    float YlnX = y * (bln(m) + 3.411429f); /* y ln x*/
+    float k = btrunc(YlnX * 1.442695f); /*(y ln x) / ln 2*/
+    float r = YlnX - k * 0.69314718f; /*XYmain final calc for now*/
+
+    /*2 ^ trunc((y ln x) / ln 2)*/
+    uint32_t exp_bits = ((int)k + 127) << 23;
+    float pow2k;
+    memcpy(&pow2k, &exp_bits, sizeof(pow2k));
+
+    float expR = bexp(r);
+
+    return pow2k * expR;
 }
 
 float sigmoid(float x)
 {
+  
+  /* LOOK INTO MATH BELOW
+  foriunion sigmoid_val; sigmoid_val.f = x;
+  foriunion sigmoid_temp; sigmoid_temp.i = !(sigmoid_val.i & 0x80000000);
+  sigmoid_val.i |= 0x80000000;
+  foriunion bexp_x; bexp_x.f = bexp(sigmoid_val.f);
+  foriunion top; top.i = (0x3F800000 * sigmoid_temp.i) | (!sigmoid_temp.i * bexp_x.i);
+  return top.f / (1.0f + bexp_x.f);
+  */
   return 1.0f / (1.0f + bexp(-x));
 }
 
@@ -300,7 +281,7 @@ float relu(float x)
 {
   foriunion x_peicewise; x_peicewise.f = x;
   foriunion return_val;
-  return_val.i = ((!(x_peicewise.i & 0x80000000)) * x_peicewise.i) | (!!(x_peicewise.i & 0x80000000) * 0x3F800000);
+  return_val.i = ((!(x_peicewise.i & 0x80000000)) * x_peicewise.i);
   return return_val.f;
 }
 
@@ -314,41 +295,17 @@ float relu_derivative(float x) //relu derivative, but undefined (x = 0) returns 
 {
   foriunion x_peicewise; x_peicewise.f = x;
   foriunion return_val;
-  return_val.i = !!(x_peicewise.i & 0x7FFFFFFF) * 0x3F800000;
-  return_val.i ^= (!!(x_peicewise.i & 0x80000000)) * return_val.i;
+  return_val.i = ((!!(x_peicewise.i & 0x7FFFFFFF)) & (!(x_peicewise.i & 0x80000000))) * 0x3F800000;
   return return_val.f;
 }
 
-int32_t offbits(float f1, float f2)
+/*NaN, +/- inf. check func*/
+uint8_t validate_number(float n)
 {
-    int32_t i1,i2;
-    i1 = *(int32_t*)& f1;
-    i2 = *(int32_t*)& f2;
-    int32_t u = abs(i1-i2);
-    int bits = 0; int bc = 1;
-    
-    for(int i=0; i<31; i++)
-    {
-        bits += !!(u & bc);
-        bc<<=1;
-    }
-    return bits;
+  /*
+  NaN = 0x7FC00000, return 0x1
+  +inf = 0x7F800000, return 0x2
+  -inf = 0xFF800000, return 0x3
+  */
 }
-
-static int32_t float_to_int(float f)
-{
-    int32_t i;
-    memcpy(&i, &f, sizeof(i));
-    
-    if (i < 0)
-        i = 0x80000000 - i;
-
-    return i;
-}
-
-int32_t ulp(float a, float b)
-{
-    int32_t ia = float_to_int(a);
-    int32_t ib = float_to_int(b);
-    return abs(ia - ib);
 }
