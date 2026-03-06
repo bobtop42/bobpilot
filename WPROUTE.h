@@ -6,6 +6,8 @@
 #include <iostream>
 #include <fstream>
 
+class PLANE;
+
 template<typename T>
 class WPROUTE
 {
@@ -45,9 +47,9 @@ void push_front(float lat, float alt, float lng)
   start_->next_ = reinterpret_cast<WP*>((!!addr) * reinterpret_cast<uintptr_t>(newWP));
   newWP->prev_ = reinterpret_cast<WP*>(addr);
   start_ = newWP;
-  start_->x = longToFeet(start_->lng, start_->lat);
+  start_->x = degLongToFeet(start_->lng, start_->lat);
   start_->y = start_->alt;
-  start_->z = latToFeet(start_->lat);
+  start_->z = degLatToFeet(start_->lat);
   routeLen++;
 }
 
