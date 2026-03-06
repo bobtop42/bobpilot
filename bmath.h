@@ -2,12 +2,14 @@
 #include "arm_neon.h"
 #include "stdint.h"
 #include <cstring>
-
 #define _e_ 2.7182818284590452353602874713527f
 
-#define LN2_HI 0.6931457519f
-#define LN2_LO 1.42860677e-6f
+#ifndef signbit
+#define signbit 0x80000000
+#endif
 
+extern "C"
+{
 float bsin(float x); //done accurate upto 360 deg
 float bcos(float x); //done accurate upto 360 deg
 float btan(float x);
@@ -27,11 +29,11 @@ inline float btrunc(float x){return static_cast<float>(static_cast<int32_t>(x));
 
 float bpow_no_decimal(float x, float y);//done
 float bpow(float x, float y); //done
-float twopowx_integer(float x)
 
 float bexp_decimal(float x); //done
 float bexp_no_decimal(float x); //done
 float bexp(float x); //done
+extern "C"{ float bldexp(float x, int e); }
 
 float sigmoid(float x); //done
 float relu(float x); //done
@@ -39,7 +41,8 @@ float relu(float x); //done
 float sigmoid_derivative(float x); // done
 float relu_derivative(float x); //done
 
-union foriunion {float f; int i;};
+uint8_t validate_number(float n);
 
-int32_t offbits(float f1, float f2);
-int32_t ulp(float a, float b);
+union foriunion {float f; int i;};
+union foruiunion {float f; uint32_t ui;};
+}
