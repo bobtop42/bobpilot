@@ -73,27 +73,6 @@ void NAVSYS::updateNpc(PLANE* plane)
 
 void NAVSYS::errorCalc(PLANE *plane)
 {
-//TO-DO:
-//fix overflow issues. radius^2 is often too big. maybe downscale the feet before calcs?
-//try maybe squashing all numbers into a smaller range. may increase accuracy because of
-//higher density of representable numbers closer to zero. So...win/win?
-//
-//Also look into why the numbers were getting messed up when we didnt normalize. possibly
-//may have been because we were to close to zero, and went negative somewhere.
-//
-//Overall, mathamatically, the concept are there. Just need to look into edge cases. like
-//nans esp overflow, div by zero and where to correct with stuff like n = n!=0 ? 1 : n
-//etc to eliminate edge cases and still produce expected outputs but with safe numbers.
-//
-//When finished, remeber to reveiw code for bug fixes line by line with old code to
-//properly conver fixed code with initial code/structures/func. calls. Ex: the
-//normalazation func. error because of two different feet converstions, leading to
-//incorrect subtractions, despite (for ex.) being at the same long.
-//
-//***Remeber to uncomment the vectorized and ARM-based LOCs before commiting to repo***
-//
-//last updated: 2/19/26, 2:46pm
-
 foriunion pxv; pxv.f = plane->pAngle[0][0];
 foriunion pyv; pyv.f = plane->pAngle[0][1];
 foriunion pzv; pzv.f = plane->pAngle[0][2];
