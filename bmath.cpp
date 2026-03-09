@@ -141,6 +141,18 @@ float bfabs(float val)
   return bfu.f;
 }
 
+float bfloor(float n)
+{
+    foriunion n1; n1.f = n;
+    foriunion nt; nt.f = n; 
+    float n2;
+    nt.i = (!!(nt.i & Signbit)) * 0x3F800000 * (!!(nt.i & 0x7FFFFFFF));
+    n1.f = n1.f - static_cast<float>(static_cast<int32_t>(n1.f));
+    nt.i *= !!n1.i;
+    n -= nt.f;
+    return static_cast<float>(static_cast<int32_t>(n));
+}
+
 float bln(float x)
 {
     // normalize x = m * 2^e
