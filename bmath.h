@@ -25,6 +25,7 @@ float qsqrt(float number); //done ~ 1% error margin
 float bfabs(float x); //done accurate always, but no NaN, or inf checks
 float bfloor(float n);
 float bceil(float n);
+float bround(float x);
 float bfmod(float value, float mod);
 
 float bln(float x); //done
