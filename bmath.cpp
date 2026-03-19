@@ -260,22 +260,30 @@ float bldexp(float x, int e)
 
 float bexp(float x)
 {
-#define EXP_C0 1.00000007548957037e+00f
-#define EXP_C1 1.00000006470314284e+00f
-#define EXP_C2 4.99988691473023439e-01f
-#define EXP_C3 1.66663256445656882e-01f
-#define EXP_C4 4.19175264833232322e-02f
-#define EXP_C5 8.38111203742408079e-03f
+  g
+  #define EXP_C0 1.00000007548957037e+00f
+  #define EXP_C1 1.00000006470314284e+00f
+  #define EXP_C2 4.99988691473023439e-01f
+  #define EXP_C3 1.66663256445656882e-01f
+  #define EXP_C4 4.19175264833232322e-02f
+  #define EXP_C5 8.38111203742408079e-03f
 
-int k = (int)roundf(x * INV_LN2);
-float r = x - k * LN2;
-float e = EXP_C5;
-e = e * r + EXP_C4;
-e = e * r + EXP_C3;
-e = e * r + EXP_C2;
-e = e * r + EXP_C1;
-e = e * r + EXP_C0;
-return ldexp(e, k);
+  int k = (int)roundf(x * INV_LN2);
+  float r = x - k * LN2;
+  float e = EXP_C5;
+  e = e * r + EXP_C4;
+  e = e * r + EXP_C3;
+  e = e * r + EXP_C2;
+  e = e * r + EXP_C1;
+  e = e * r + EXP_C0;
+  return ldexp(e, k);
+
+  #undef EXP_C0
+  #undef EXP_C1
+  #undef EXP_C2
+  #undef EXP_C3
+  #undef EXP_C4
+  #undef EXP_C5
 }
 
 float bpow(float x, float y) /*x^y = 2^k * e ^ y(ln m + e ln 2) - k ln 2 */
