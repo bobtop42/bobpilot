@@ -165,6 +165,19 @@ float bceil(float n)
     return static_cast<float>(static_cast<int32_t>(n));
 }
 
+float bround(float x)
+{
+    foriunion n; n.f = x;
+    int32_t sign = n.i & 0x80000000;
+   
+    n.i &= 0x7FFFFFFF;
+   
+    n.f += 0.5;
+    n.i = static_cast<int32_t>(n.f);
+    n.i |= sign;
+    return n.f;
+}
+
 float bln(float x)
 {
     // normalize x = m * 2^e
