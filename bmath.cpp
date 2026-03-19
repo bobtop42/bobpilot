@@ -242,16 +242,7 @@ float bexp_integer(float x) //e^x only for Integers
   inverse_check[i] = 1.0f; //if x is neg, 1/e^x, else e^x/1
   inverse_check[!i] = e;
   e = inverse_check[0] / inverse_check[1];
-  return e;
-}
-
-float bexp(float x) // e^x
-{
-  float integer = static_cast<int>(x);
-  float decimal = x - integer;
-  float number = bexp_integer(integer) * bexp_decimal(decimal);
-  return number;
-}
+  return 
 
 float bldexp(float x, int e)
 {
@@ -265,6 +256,26 @@ float bldexp(float x, int e)
     v.ui = (v.ui & 0x807FFFFF) | (exponent << 23);
     v.ui = (v.ui * !(exponentOverflowCheck | exponentUnderflowCheck)) | ((!((uint32_t)exponentOverflowCheck)) * 0x7F800000) | (!((uint32_t)exponentUnderflowCheck));
     return v.f;
+}
+
+float bexp(float x)
+{
+#define EXP_C0 1.00000007548957037e+00f
+#define EXP_C1 1.00000006470314284e+00f
+#define EXP_C2 4.99988691473023439e-01f
+#define EXP_C3 1.66663256445656882e-01f
+#define EXP_C4 4.19175264833232322e-02f
+#define EXP_C5 8.38111203742408079e-03f
+
+int k = (int)roundf(x * INV_LN2);
+float r = x - k * LN2;
+float e = EXP_C5;
+e = e * r + EXP_C4;
+e = e * r + EXP_C3;
+e = e * r + EXP_C2;
+e = e * r + EXP_C1;
+e = e * r + EXP_C0;
+return ldexp(e, k);
 }
 
 float bpow(float x, float y) /*x^y = 2^k * e ^ y(ln m + e ln 2) - k ln 2 */
