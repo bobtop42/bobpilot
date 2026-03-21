@@ -146,7 +146,7 @@ float bfloor(float n)
     foriunion n1; n1.f = n;
     foriunion nt; nt.f = n; 
     float n2;
-    nt.i = (!!(nt.i & Signbit)) * 0x3F800000 * (!!(nt.i & 0x7FFFFFFF));
+    nt.i = (!!(nt.i & signbit32)) * 0x3F800000 * (!!(nt.i & 0x7FFFFFFF));
     n1.f = n1.f - static_cast<float>(static_cast<int32_t>(n1.f));
     nt.i *= !!n1.i;
     n -= nt.f;
@@ -158,7 +158,7 @@ float bceil(float n)
     foriunion n1; n1.f = n;
     foriunion nt; nt.f = n; 
     float n2;
-    nt.i = (!(nt.i & Signbit)) * 0x3F800000 * (!!(nt.i & 0x7FFFFFFF));
+    nt.i = (!(nt.i & signbit32)) * 0x3F800000 * (!!(nt.i & 0x7FFFFFFF));
     n1.f = n1.f - static_cast<float>(static_cast<int32_t>(n1.f));
     nt.i *= !!n1.i;
     n += nt.f;
@@ -168,7 +168,7 @@ float bceil(float n)
 float bround(float x)
 {
     foriunion n; n.f = x;
-    int32_t sign = n.i & 0x80000000;
+    int32_t sign = n.i & signbit32;
    
     n.i &= 0x7FFFFFFF;
    
@@ -177,6 +177,13 @@ float bround(float x)
     n.i |= sign;
     return n.f;
 }
+
+int babs(int n)
+{
+    int32_t mul = ((!(n & signbit32))<<1) - 0x1;
+    return n * mul;
+}
+
 
 float bln(float x)
 {
@@ -209,53 +216,14 @@ float bln(float x)
     return ln_m + e * 0.6931471805599453f;
 }
 
-float bpow_no_decimal(float x, float y)
-{
-  int i = static_cast<int>(y);
-  float x_return = x;
-  while(i>0)
-    {
-      x_return *= x;
-      i--;
-    }
-  return x_return;
-}
-
-float bexp_decimal(float x) //e^x only for n in range [0,1]
-{
-  return 1.0f +
-         x * (1.0f + 
-         x * (0.49999994f + 
-         x * (0.16666572f + 
-         x * (0.04165735f + 
-         x * (0.00830136f + 
-         x * (0.0138637f))))));
-}
-
-float bexp_integer(float x) //e^x only for Integers
-{
-  float e = _e_;
-  int m = static_cast<int>(bfabs(x)); int i = 0; //sets up loop vals;
-  while(i<m){e *= _e_; i++;} //mul e by e m times
-  float inverse_check[2];
-  i = !(static_cast<int>(x)&0x80000000); //if x is neg, i = 1, else i = 0
-  inverse_check[i] = 1.0f; //if x is neg, 1/e^x, else e^x/1
-  inverse_check[!i] = e;
-  e = inverse_check[0] / inverse_check[1];
-  return 
-
 float bldexp(float x, int e)
 {
-    foruiunion v; v.f = x;
-    uint32_t exponent = (v.ui >> 23) & 0xFF;
-    int64_t exponentOverflowCheck = !!((static_cast<int64_t>(0xFFFFFFFF - exponent) - e) & signbit);
-    int64_t exponentUnderflowCheck = !!((static_cast<int64_t>(exponent) + e) & signbit);
-
-    exponent += e;
-
-    v.ui = (v.ui & 0x807FFFFF) | (exponent << 23);
-    v.ui = (v.ui * !(exponentOverflowCheck | exponentUnderflowCheck)) | ((!((uint32_t)exponentOverflowCheck)) * 0x7F800000) | (!((uint32_t)exponentUnderflowCheck));
-    return v.f;
+    int twopow = 0x1 << babs(e);
+    int an = !(e & signbit32);
+    float flip[2];
+    flip[!an] = static_cast<float>(twopow);
+    flip[an] = 1.0f;
+    return (flip[0]/flip[1]) * x;
 }
 
 float bexp(float x)
@@ -268,7 +236,7 @@ float bexp(float x)
   #define EXP_C4 4.19175264833232322e-02f
   #define EXP_C5 8.38111203742408079e-03f
 
-  int k = (int)roundf(x * INV_LN2);
+  int k = (int)bround(x * INV_LN2);
   float r = x - k * LN2;
   float e = EXP_C5;
   e = e * r + EXP_C4;
@@ -276,7 +244,7 @@ float bexp(float x)
   e = e * r + EXP_C2;
   e = e * r + EXP_C1;
   e = e * r + EXP_C0;
-  return ldexp(e, k);
+  return bldexp(e, k);
 
   #undef EXP_C0
   #undef EXP_C1
@@ -335,7 +303,7 @@ float relu(float x)
 {
   foriunion x_peicewise; x_peicewise.f = x;
   foriunion return_val;
-  return_val.i = ((!(x_peicewise.i & 0x80000000)) * x_peicewise.i);
+  return_val.i = ((!(x_peicewise.i & signbit32)) * x_peicewise.i);
   return return_val.f;
 }
 
@@ -349,7 +317,7 @@ float relu_derivative(float x) //relu derivative, but undefined (x = 0) returns 
 {
   foriunion x_peicewise; x_peicewise.f = x;
   foriunion return_val;
-  return_val.i = ((!!(x_peicewise.i & 0x7FFFFFFF)) & (!(x_peicewise.i & 0x80000000))) * 0x3F800000;
+  return_val.i = ((!!(x_peicewise.i & 0x7FFFFFFF)) & (!(x_peicewise.i & signbit32))) * 0x3F800000;
   return return_val.f;
 }
 
