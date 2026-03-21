@@ -23,7 +23,7 @@ float qinverse_qsqrt(float number); // done ~ 1% error margin
 float qsqrt(float number); //done ~ 1% error margin
 
 float bfabs(float x); //done accurate always, but no NaN, or inf checks
-float babs(int n);
+int babs(int n);
 
 float bfloor(float n);
 float bceil(float n);
