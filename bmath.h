@@ -37,7 +37,7 @@ inline float btrunc(float x){return static_cast<float>(static_cast<int32_t>(x));
 float bpow(float x, float y); //done
 
 float bexp(float x); //done
-float bldexp(float x, int e);
+float bldexp(float x, int e); //done
 
 float sigmoid(float x); //done
 float relu(float x); //done
