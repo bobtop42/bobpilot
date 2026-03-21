@@ -5,8 +5,8 @@
 #define _e_ 2.7182818284590452353602874713527f
 #define LN2_HI 0.6931457519f
 #define LN2_LO 1.42860677e-6f
-#ifndef signbit
-#define signbit 0x80000000
+#ifndef signbit32
+#define signbit32 0x80000000
 #endif
 
 extern "C"
@@ -23,19 +23,19 @@ float qinverse_qsqrt(float number); // done ~ 1% error margin
 float qsqrt(float number); //done ~ 1% error margin
 
 float bfabs(float x); //done accurate always, but no NaN, or inf checks
+float babs(int n);
+
 float bfloor(float n);
 float bceil(float n);
+
 float bround(float x);
 float bfmod(float value, float mod);
 
 float bln(float x); //done
 inline float btrunc(float x){return static_cast<float>(static_cast<int32_t>(x));} //done (duh, inline)
 
-float bpow_no_decimal(float x, float y);//done
 float bpow(float x, float y); //done
 
-float bexp_decimal(float x); //done
-float bexp_no_decimal(float x); //done
 float bexp(float x); //done
 float bldexp(float x, int e);
 
