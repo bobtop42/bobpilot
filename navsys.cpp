@@ -130,19 +130,19 @@ float paty = static_cast<float>(!!(flags & 0x04)) * pradius;
 px.f = pa.f * patx; py.f = pa.f * pslope;
 py.f = patx * py.f + paty;
 
-px.i = (px.i & 0x7FFFFFFF) | (static_cast<int32_t>(plane->pAngle[0][0]) & signbit);
-rx.i = (rx.i & 0x7FFFFFFF) | (static_cast<int32_t>(plane->pAngle[0][0]) & signbit);
-py.i = (py.i & 0x7FFFFFFF) | (static_cast<int32_t>(plane->pAngle[0][1]) & signbit);
-rz.i = (rz.i & 0x7FFFFFFF) | (static_cast<int32_t>(plane->pAngle[0][2]) & signbit);
+px.i = (px.i & 0x7FFFFFFF) | (static_cast<int32_t>(plane->pAngle[0][0]) & signbit32);
+rx.i = (rx.i & 0x7FFFFFFF) | (static_cast<int32_t>(plane->pAngle[0][0]) & signbit32);
+py.i = (py.i & 0x7FFFFFFF) | (static_cast<int32_t>(plane->pAngle[0][1]) & signbit32);
+rz.i = (rz.i & 0x7FFFFFFF) | (static_cast<int32_t>(plane->pAngle[0][2]) & signbit32);
 
 foriunion rerror; foriunion perror;
 
 rerror.f = rx.f * rslope; perror.f * px.f;
-rerror.f -= rz.f; rerror.i = (rerror.i & signbit) | 0x3F800000;
-perror.f -= py.f; perror.i = (perror.i & signbit) | 0x3F800000;
+rerror.f -= rz.f; rerror.i = (rerror.i & signbit32) | 0x3F800000;
+perror.f -= py.f; perror.i = (perror.i & signbit32) | 0x3F800000;
 
-perror.i ^= px.i & signbit;
-rerror.i ^= rx.i & signbit;
+perror.i ^= px.i & signbit32;
+rerror.i ^= rx.i & signbit32;
 
 t1 = x.f - rx.f; t2 = z.f - rz.f;
 rerror.f = qsqrt(t1 * t1 + t2 * t2);
