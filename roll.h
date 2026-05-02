@@ -1,3 +1,6 @@
+// Copyright 2026 bobtop42
+//
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #ifndef ROLL_H
 #define ROLL_H
 #include "pid.h"
