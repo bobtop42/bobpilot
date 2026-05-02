@@ -15,9 +15,10 @@ void ROLL::disengaged()
 void ROLL::targetRoll(float value, PLANE* plane)
 {
     targetRoll_ = bfabs(value);
-    RollDir = static_cast<int8_t>(value/bfabs(value) + static_cast<float>(!static_cast<int>(bfabs(value) + 0.9999999f)));
+    foriunion rollPoN; rollPoN.f = value;
+    RollDir = (((!(rollPoN.i & 0x80000000))<<1)-1) * (!!(rollPoN.i & 0x7FFFFFFF));
     /*
-    returns 1 for rolling dir left, 0 for on course for roll, and -1 for rolling dir right.
+    returns -1 for rolling dir left, 0 for on course for roll, and 1 for rolling dir right.
     code basicaly  does this:
     value += 0.9999999; //makes sure any dec >=1, so when truncates non- zero goes to 1
     static_cast -> int to truncate, then turns all non-zero vals to 0, and 0 -> 1, so when you div, no non-zero errors, then goes back to float, to div then int8_t for RollDir final value
@@ -26,23 +27,20 @@ void ROLL::targetRoll(float value, PLANE* plane)
 
 void ROLL::targetRoll(PLANE* plane)
 {
-    float pa = plane->PA.roll; 
+    float pa = plane->PA.roll;
     float wp = plane->WPA.roll;
 
-    targetRoll_ = bfabs(wp-pa);
-
-    float t1 = static_cast<float>(!!static_cast<int>(targetRoll_ / 3.14159f));
-    targetRoll_ = bfabs(targetRoll_ - (6.28318f * t1));
-    
-    union pon{int i; float f;};
-    pon rollpon; rollpon.f = wp - pa;
-    int t3 = static_cast<int>(t1 + !(rollpon.i&0x8000) - 2) & 0x2;
-    RollDir = static_cast<int8_t>(t3) - 1*!!rollpon.i;
+    foriunion rollPoN; rollPoN.f = wp - pa;
+    foriunion isbig; isbig.f = bfabs(rollPoN.f) - 3.141592f;
+    isbig.i = !(isbig.i & 0x80000000);
+    RollDir = (((!((!(rollPoN.i & 0x80000000))^(!isbig.i)))<<1)-1)*(!!(rollPoN.i & 0x7FFFFFFF));
+    isbig.i = (isbig.i * 0x40C90FDB) | (RollDir & 0x80000000);
+    targetRoll_ = bfabs(isbig.f + rollPoN.f);
 }
 
 void ROLL::adjustAileron(float value, PLANE* plane)
 {
-    plane->ap.flap.fR = plane->ap.flap.fL += value * static_cast<float>(RollDir) * -1.0f;
+    plane->ap.flap.fR = plane->ap.flap.fL += value * static_cast<float>(RollDir);
     plane->ap.flapAdj(plane->ap);
 }
 
