@@ -1,3 +1,7 @@
+// Copyright 2026 bobtop42
+//
+
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 //  ################################################################################ //
 //  #   READ ME: I had the corrected errorCalc code, all tested and working,       # //
 //  #   but somehow I lost it and could not find the correct backup due to power   # //
