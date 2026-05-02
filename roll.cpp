@@ -1,3 +1,6 @@
+// Copyright 2026 bobtop42
+//
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #include "roll.h"
 
 ROLL::ROLL(float targetRoll, float currentRoll, bool engaged):targetRoll_(targetRoll), currentRoll_(currentRoll), engaged_(engaged) {}
