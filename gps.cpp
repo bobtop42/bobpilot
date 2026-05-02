@@ -12,7 +12,7 @@ void GPS::punctuationMarker(const std::string gpsmsg)
   }
 
   i++;
-  
+
   while(gpsmsg[i]!='\r')
     {
       puncLocation[pc] = i;
@@ -23,10 +23,14 @@ void GPS::punctuationMarker(const std::string gpsmsg)
 
 /*std::tuple<int, int, int, float, const char, float, const char, int, float> */ auto GPS::parser(const std::string gpsmsg, int* puncLocation)//-> std::tuple<int,int,int,float,char,float,char,int,float>
 {
-  if(gpsmsg.substr(puncLocation[0]+1,6) != "GPGGA")
-  {
-    GPGGA = true;
-  }
+  //if(gpsmsg.substr(puncLocation[0]+1,6) != "GPGGA")
+  //{
+  //  GPGGA = true;
+  //}
+  GPGGA = (static_cast<int>(gpsmsg[0]+1) + static_cast<int>(gpsmsg[0]+2) + 
+           static_cast<int>(gpsmsg[0]+3) + static_cast<int>(gpsmsg[0]+4) +   
+           static_cast<int>(gpsmsg[0]+5) + static_cast<int>(gpsmsg[0]+6)) 
+           - 356;
 
   int i=1;
   //UTC itme
@@ -67,68 +71,53 @@ void GPS::punctuationMarker(const std::string gpsmsg)
   i++;
   char gpsAltUnit = gpsmsg[puncLocation[i]+1];
   i++;
-  
-  if(toupper(gpsAltUnit) == 'M')
-  {
-    gpsAlt = toFeet(gpsAlt);
-  }
+
+  //if(toupper(gpsAltUnit) == 'M')
+  //{
+  //  gpsAlt = toFeet(gpsAlt);
+  //}
+  //check below for accuracy to above code
+  gpsAlt = gpsAlt * (1.0f + static_cast<float>((gpsAltUnit&0x1)*0x4011F948));
 
   float gpsGeoidalSep = std::stof(gpsmsg.substr(puncLocation[i], 1+puncLocation[i+1]-puncLocation[i]));
 
  char gpsGeoidalSepUnit = gpsmsg[puncLocation[i]+1];
-  
-  if(toupper(gpsGeoidalSepUnit)== 'M')
-  {
-    gpsAlt -= toFeet(gpsGeoidalSep);
-  }
-  else
-  {
-    gpsAlt -= gpsGeoidalSep;
-  }
+
+  //if(toupper(gpsGeoidalSepUnit)== 'M')
+  //{
+  //  gpsAlt -= toFeet(gpsGeoidalSep);
+  //}
+  //else
+  //{
+  //  gpsAlt -= gpsGeoidalSep;
+  //}
+  //check below code for accuracy from code above
+  gpsAlt -= gpsGeoidalSep * (1.0f + static_cast<float>((gpsGeoidalSepUnit&0x1)*0x4011F948));
 
   return std::make_tuple(hrs, min, sec, gpsLatLocation, latHemisphere, gpsLongLocation, LongHemisphere, gpsMeasureAccuracy, gpsAlt, numSat,hdop);
 }
 
-void GPS::update(PLANE* plane, int tries)
+void GPS::update(PLANE* plane, int tries)//restructure to move oipening ttyS0 to setUp func and make a shutDown func too
 {
-  int fd = open ("/dec/ttyS0", O_RDWR|O_NOCTTY|O_SYNC);
-
-  if(fd==-1)
+  char buf[256];
+  int n = read(fd, buf, sizeof(buf));
+  if(n<0)
   {
+    close(fd);
+    bool resetup = configSerialPort();
     GPGGA = false;
+    return;
   }
-  else
+  const char* end = (const char*)memchr(buf, '\n', n);
+  if (!end) 
   {
-    char buf[256];
-    std::string sentence="";
-  
-    int n = read(fd, buf, sizeof(buf));
-
-    if(n>0)
-    {
-      for(int i=0; i<n; ++i)
-        {
-          char ch = buf[i];
-          if(ch == '\n')
-          {
-            break;
-          }
-          else if(ch!='\n')
-          {
-            sentence += ch;
-          }
-        }
-    }
-    else
-    {
-      close(fd);
       GPGGA = false;
-    }
-    update(plane, sentence);
-    sentence.clear();
-    GPGGA = true;
+      return; // not a full sentence yet
   }
-  close(fd);
+  int len = end - buf;
+  std::string sentence(buf, len);
+  update(plane, sentence);
+  GPGGA = true;
 }
 
 void GPS::update(PLANE* plane)
@@ -142,8 +131,7 @@ void GPS::update(PLANE* plane)
       else
         tries++;
     }
-  if(!GPGGA)
-    SHUTDOWNERROR = true;
+  SHUTDOWNERROR = !GPGGA;
 }
 
 void GPS::update(PLANE* plane, const std::string gpsmsg)
@@ -155,10 +143,12 @@ void GPS::update(PLANE* plane, const std::string gpsmsg)
   plane->updateGPS(lat, Alt, Long, hem1, hem2, Acc, hrs, min, sec, numSat, hdop);
 }
 
-bool GPS::configSerialPort(int fd)
+bool GPS::configSerialPort()
 {
-  speed_t baudRate=9600;
+  fd = open("/dev/ttyS0", O_RDWR|O_NOCTTY|O_SYNC);
   
+  speed_t baudRate=9600;
+
   termios tty{};
   //check tcgetaddr 
   if(tcgetattr(fd, &tty)!=0)
@@ -167,7 +157,7 @@ bool GPS::configSerialPort(int fd)
     close(fd);
     return false;
   }
-  
+
   //set baud rate
   cfsetispeed(&tty, baudRate);
 
