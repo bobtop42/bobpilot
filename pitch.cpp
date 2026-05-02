@@ -1,3 +1,6 @@
+// Copyright 2026 bobtop42
+//
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #include "pitch.h"
 
 PITCH::PITCH(float targetpitch, float currentpitch, bool engaged):targetPitch_(targetpitch), currentPitch_(currentpitch), engaged_(engaged) {}
