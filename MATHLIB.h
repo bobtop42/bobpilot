@@ -1,3 +1,6 @@
+// Copyright 2026 bobtop42
+//
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #ifndef MATHLIB_H //REPLACE TRIG WITH BTRIG FUNCS
 #define MATHLIB_H
 #include "stdint.h"
