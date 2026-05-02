@@ -1,3 +1,6 @@
+// Copyright 2026 bobtop42
+//
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #ifndef I2C_H
 #define I2C_H
 #define DEVICE_ADDR 0x68
