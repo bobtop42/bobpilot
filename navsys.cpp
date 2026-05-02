@@ -1,3 +1,9 @@
+//  ################################################################################ //
+//  #   READ ME: I had the corrected errorCalc code, all tested and working,       # //
+//  #   but somehow I lost it and could not find the correct backup due to power   # //
+//  #   issues. Working on remaking it again. Sorry for the delay.                 # //
+//  ################################################################################ //
+
 #include "navsys.h"
 //#include "kalman.h"
 
