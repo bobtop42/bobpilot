@@ -1,3 +1,6 @@
+// Copyright 2026 bobtop42
+//
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #ifndef WPROUTE_H
 #define WPROUTE_H
 #include "stdint.h"
