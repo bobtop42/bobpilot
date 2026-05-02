@@ -54,6 +54,8 @@ int8_t sa;
 
 uint16_t ail, ele, thr, rud, SA,SB, SC, SD, SE, SF;
 
+bool setUp();
+void shutDown();
 int fd;
 };
 
