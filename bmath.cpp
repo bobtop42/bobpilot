@@ -141,6 +141,12 @@ float bfabs(float val)
   return bfu.f;
 }
 
+  int babs(int n)
+  {
+      int32_t mul = ((!(n & signbit32))<<1) - 0x1;
+      return n * mul;
+  }
+
 float bfloor(float n)
 {
     foriunion n1; n1.f = n;
@@ -169,52 +175,60 @@ float bround(float x)
 {
     foriunion n; n.f = x;
     int32_t sign = n.i & signbit32;
-   
+
     n.i &= 0x7FFFFFFF;
-   
+
     n.f += 0.5;
     n.i = static_cast<int32_t>(n.f);
     n.i |= sign;
     return n.f;
 }
 
-int babs(int n)
-{
-    int32_t mul = ((!(n & signbit32))<<1) - 0x1;
-    return n * mul;
-}
-
-
 float bln(float x)
 {
-    // normalize x = m * 2^e
-    uint32_t bits;
-    memcpy(&bits, &x, sizeof(bits));
+  foriunion xn; xn.f = x;
+  int32_t k = ((xn.i >> 23) & 0xFF) - 127;
+  xn.i = (xn.i & 0x007FFFFF) | 0x3F800000;
+  float m = xn.f;
+  xn.f = m - SQRT2; 
+  xn.i = !(xn.i & signbit32) | (!(xn.i & 0x7FFFFFFF));  
+  k += xn.i;
+  xn.i = ((0x3F800000 ^ (xn.i << 23))); 
+  m *= xn.f; 
 
-    int e = ((bits >> 23) & 0xFF) - 127;          // extract exponent
-    bits = (bits & 0x7FFFFF) | (127 << 23);      // force exponent to 127 -> m in [1,2)
-    float m;
-    memcpy(&m, &bits, sizeof(m));
-
-    // atanh transform
-    float z = (m - 1.0f) / (m + 1.0f);
-
-    //polynomial
-    float z2 = z * z;
-    float z3 = z2 * z;
-    float z5 = z3 * z2;
-    float z7 = z5 * z2;
-    float z9 = z7 * z2;
-
-    float ln_m = 2.0f * (z
-        + z3 * 0.3333333f
-        + z5 * 0.2000000f
-        + z7 * 0.1428571f
-        + z9 * 0.1111111f);
-
-    // add exponent contribution
-    return ln_m + e * 0.6931471805599453f;
-}
+      // poly coeffs
+  const float c0 = -2.72087514853282908e+00f;
+  const float c1 =  7.99381310026068803e+00f;
+  const float c2 = -1.38728351690689511e+01f;
+  const float c3 =  1.82053222322546624e+01f;
+  const float c4 = -1.66727754381288804e+01f;
+  const float c5 =  1.03467182950741474e+01f;
+  const float c6 = -4.14977469835951318e+00f;
+  const float c7 =  9.71206070689384804e-01f;
+  const float c8 = -1.00799216432559263e-01f;
+  
+  // estrin grouping
+  float m2 = m * m;
+  float m4 = m2 * m2;
+  float m6 = m4 * m2;
+  float m8 = m4 * m4;
+  
+  float g1 = c0 + c1 * m;
+  float g2 = c2 + c3 * m;
+  float g3 = c4 + c5 * m;
+  float g4 = c6 + c7 * m;
+  
+  g1 = g1 + g2 * m2;
+  g1 = g1 + g3 * m4;
+  g1 = g1 + g4 * m6 + c8 * m8;
+  
+  xn.f = k * LN2 + g1;
+  k = *(int32_t*)&x; k -= 0x3F800000;
+  xn.i *= !!(k & 0x7FFFFFFF);
+  k = *(int32_t*)&x; k = ((!(k & 0x7FFFFFFF)) | (!!(k & 0x80000000))) * 0xFF800000;
+  xn.i = (xn.i * (!k)) | k;
+  return xn.f;
+  }
 
 float bldexp(float x, int e)
 {
@@ -228,7 +242,6 @@ float bldexp(float x, int e)
 
 float bexp(float x)
 {
-  g
   #define EXP_C0 1.00000007548957037e+00f
   #define EXP_C1 1.00000006470314284e+00f
   #define EXP_C2 4.99988691473023439e-01f
@@ -287,7 +300,7 @@ float bpow(float x, float y) /*x^y = 2^k * e ^ y(ln m + e ln 2) - k ln 2 */
 
 float sigmoid(float x)
 {
-  
+
   /* LOOK INTO MATH BELOW
   foriunion sigmoid_val; sigmoid_val.f = x;
   foriunion sigmoid_temp; sigmoid_temp.i = !(sigmoid_val.i & 0x80000000);
