@@ -98,66 +98,53 @@ int I2C::errorhandler(int error)
 
 int I2C::errorhandlerswitchtable(int errorlvl)
 {
-  switch(errorlvl)
+  uint8_t bufval = 0x75 ^ (!(((errorlvl) - 3) & 0x1E));
+  uint8_t buf[1] = {bufval};
+
+  int32_t el2 = ~errorlvl; el2 = (el2&0x1) | (!el2);
+  el2 |= ((~errorlvl) & 0x4) | ((!((~errorlvl) - 2)) << 1);
+
+  switch(el2)
     {
-      case -1:
+      case 1:
         {
-          uint8_t buf[1] = {0x75};
-          if(write(fd, buf, 1) != 1) return -1;
-          if(read(fd, buf, 1) != 1) return -1;
-          //check this below
-          if(buf[0]!=0x68)return -1;
+          int retval = errorlvl & 2; retval |= retval >> 1; retval |= -4;
+          if(write(fd, buf, 1) != 1) return retval;
+          if(read(fd, buf, 1) != 1) return -1 ^ ((!(retval&0x2)) << 1);
+          uint8_t retcheck = !(errorlvl + 5);
+          retcheck = (buf[0] * (!retcheck)) | (0x68 * retcheck);
+          if(retcheck != 0x68) return -1;
+          buf[0] |= 0x80;
+          if(errorlvl == -4){if(write(fd,buf,1)!=1)return -7;}
+          auto sleept = (((~errorlvl) + 1) >> 1);
+          sleept <<= (sleept & 0x2); sleept |= (sleept&0x8) >> 1;
+          sleept *= 10;
+          std::this_thread::sleep_for(std::chrono::milliseconds(sleept));
           return 0;
         }
-      case -2:
-        {
-          for(int i=0; i<3; i++)
-            {
-              uint8_t buf[1] = {0x75};
-              if(write(fd, buf, 1) != 1) return -1;
-              if(read(fd, buf, 1) != 1) return -1;
-              //check this below
-              if(buf[0]!=0x68)return -1;
-              std::this_thread::sleep_for(std::chrono::milliseconds(10));
-              return 0;
-            }
-          return -2;
-        }
-      case -3:
+      case 2:
         {
           if((ioctl(fd, I2C_SLAVE, DEVICE_ADDR)) < 0) return -3;
           return 0;
         }
-      case -4:
-        {
-          uint8_t buf[1] = {0x6B};
-          if(write(fd, buf, 1)!=1)
-            return -4;
-          if(read(fd, buf, 1)!=1)
-            return -5;
-          *buf|=0x80;
-          if(write(fd, buf, 1)!= 1)
-            return -7;
-          std::this_thread::sleep_for(std::chrono::milliseconds(100));
-          return 0;
-        }
-      case -5:
+      case 3:
         {
           close(fd);
           if((fd = open("/dev/i2c-1", O_RDWR))==-1) return -6;
           return 0;
         }
       default:
-        return -8;
-
+        {
+          return -8;
+        }
     }
   return 0;
-};
+}
 
 auto I2C::calibrate(int loops)
 {
     int16_t zero[6] = {0,0,0,0,0,0};
-    uint16_t ax, ay, az, gx, gy, gz;
+    uint16_t ax; uint16_t  ay; uint16_t az; uint16_t gx; uint16_t gy; uint16_t gz;
 
     for(int i=0; i<loops; i++)
     {
@@ -255,3 +242,68 @@ void I2C::updatePA(PLANE* plane)
 
       return 0;
   }
+
+void I2C::shutdown(){close(fd);}
+
+
+
+//old errorhandlerswitchtable below:
+/*
+int I2C::errorhandlerswitchtable(int errorlvl)
+{
+  switch(errorlvl)
+    {
+      case -1:
+        {
+          uint8_t buf[1] = {0x75};
+          if(write(fd, buf, 1) != 1) return -1;
+          if(read(fd, buf, 1) != 1) return -1;
+          //check this below
+          if(buf[0]!=0x68)return -1;
+          return 0;
+        }
+      case -2:
+        {
+          for(int i=0; i<3; i++)
+            {
+              uint8_t buf[1] = {0x75};
+              if(write(fd, buf, 1) != 1) return -1;
+              if(read(fd, buf, 1) != 1) return -1;
+              //check this below
+              if(buf[0]!=0x68)return -1;
+              std::this_thread::sleep_for(std::chrono::milliseconds(10));
+              return 0;
+            }
+          return -2;
+        }
+      case -3:
+        {
+          if((ioctl(fd, I2C_SLAVE, DEVICE_ADDR)) < 0) return -3;
+          return 0;
+        }
+      case -4:
+        {
+          uint8_t buf[1] = {0x6B};
+          if(write(fd, buf, 1)!=1)
+            return -4;
+          if(read(fd, buf, 1)!=1)
+            return -5;
+          *buf|=0x80;
+          if(write(fd, buf, 1)!= 1)
+            return -7;
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));
+          return 0;
+        }
+      case -5:
+        {
+          close(fd);
+          if((fd = open("/dev/i2c-1", O_RDWR))==-1) return -6;
+          return 0;
+        }
+      default:
+        return -8;
+
+    }
+  return 0;
+};
+*/
