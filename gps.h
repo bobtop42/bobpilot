@@ -14,7 +14,7 @@ class GPS
 public:
 void update(PLANE* plane, const std::string gpsmsg);
 void update(PLANE* plane);
-bool configSerialPort(int fd);
+bool configSerialPort();
 
 GPS();
 
@@ -27,6 +27,7 @@ int puncLocation[67];
 bool gpsERRORepen = false;
 bool gpsERRORread = false;
 bool GPGGA = true;
+int fd;
 };
 
 #endif
