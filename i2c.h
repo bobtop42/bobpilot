@@ -21,7 +21,7 @@ class I2C
 public:
 bool errorI2Cdevice;
 bool errorI2Cdata;
-int fd = 0;
+int fd;
 std::string dev = "/dev/i2c-1";
 
 I2C();
@@ -29,6 +29,7 @@ I2C();
 void updatePA(PLANE* plane);
 int update(PLANE *plane);
 int setUp();
+void shutdown();
 auto calibrate(int loops);
 
 int errorhandler(int error);
