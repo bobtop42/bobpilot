@@ -8,42 +8,54 @@
 #ifndef signbit32
 #define signbit32 0x80000000
 #endif
+#ifndef LN2
+#define LN2 0.69314718055994530941723212145818f
+#endif
+#ifndef INV_LN2
+#define INV_LN2 1.4426950408889634073599246810019f
+#endif
+#ifndef SQRT2
+#define SQRT2 1.41421356237f
+#endif
+#ifndef SQRT2PLUS0x1
+#define SQRT2PLUS0x1 1.4142137f
+#endif
 
 extern "C"
 {
-float bsin(float x); //done accurate upto 360 deg
-float bcos(float x); //done accurate upto 360 deg
-float btan(float x);
+float bsin(float x); //todo
+float bcos(float x); //todo
+float btan(float x); //todo
 
-float bacos(float x);
-float basin(float x);
-float batan2(float y, float x); //done accurate within ~90deg
+float bacos(float x); //todo
+float basin(float x); //todo
+float batan2(float y, float x); //finish
 
 float qinverse_qsqrt(float number); // done ~ 1% error margin
 float qsqrt(float number); //done ~ 1% error margin
 
 float bfabs(float x); //done accurate always, but no NaN, or inf checks
-int babs(int n);
+int babs(int n); //done accurate always, but no NaN, or inf checks
 
-float bfloor(float n);
-float bceil(float n);
+float bfloor(float n); //done
+float bceil(float n); //done
 
-float bround(float x);
-float bfmod(float value, float mod);
+float bround(float x); //done
+float bfmod(float value, float mod); //todo
 
 float bln(float x); //done
 inline float btrunc(float x){return static_cast<float>(static_cast<int32_t>(x));} //done (duh, inline)
 
-float bpow(float x, float y); //done
+float bpow(float x, float y); //finish
 
 float bexp(float x); //done
 float bldexp(float x, int e); //done
 
-float sigmoid(float x); //done
-float relu(float x); //done
+float sigmoid(float x); //done?
+float relu(float x); //done?
 
-float sigmoid_derivative(float x); // done
-float relu_derivative(float x); //done
+float sigmoid_derivative(float x); //done?
+float relu_derivative(float x); //done?
 
 uint8_t validate_number(float n);
 
