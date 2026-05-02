@@ -73,16 +73,32 @@ int16_t combine(uint8_t* buf, int start) //for converting 2s complement to int16
 inline
 uint16_t radianToFeet(float rad);
 
+constexpr float FT_PER_DEG = 365288.0f;
+constexpr float DEG_PER_FT = 0.000002737566f;
+
 inline
-float feetToLat(float feet)
+float feetToLat(float feet)//remove from codebase
 {
-  return feet / 1014.688888;
+  constexpr float ft_inv = 1.0f / 1014.688888f;
+  return feet / ft_inv;
 }
 
 inline
-float feetToLong(float feet, float lat)
+float feetToLong(float feet, float lat) //remove from codebase
 {
-  return (bfabs(feet / (bcos(lat) / 365288.0)));
+  return (bfabs(feet * (bcos(lat) / 365288.0f)));
+}
+
+inline
+float degFeetToLat(float feet)
+{
+  return bfabs(feet * 0.000002737566f);
+}
+
+inline
+float degFeetToLong(float feet, float lat)
+{
+  return bfabs(feet * 0.000002737566f * cos(lat));
 }
 
 inline float circleDiv(float circleDivft, float radiusft)
@@ -121,7 +137,7 @@ struct FLAP
 flapPos flap;
 
 /*this func below calculates wether the flap pos is more than +/- 60 deg(in rad) and if the flap is not >60 t = 1, else if  flap >=60 t=0. then either zeros out the flap pos and adj. to */
-void flapAdj(FLAP f);
+void flapAdj(FLAP &f);
 };
 
 struct HEMISPHERE
