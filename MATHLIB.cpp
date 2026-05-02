@@ -28,8 +28,8 @@ float floatPositionReturn(const std::string msg, int* logPos, int num)
 {
   int high = std::stoi(msg.substr(logPos[num]+1, 1));
   int low = std::stoi(msg.substr(logPos[num+1], (logPos[num+2]-logPos[num+1])));
-  
-  
+
+
   float combined = positionReturn(high, low);
   return combined;
 }
@@ -71,11 +71,15 @@ uint16_t radianToFeet(float rad)
   return (uint16_t)(rad);
 }
 
-void FLAP::flapAdj(FLAP f)
+void FLAP::flapAdj(FLAP &f)
 {
-  float t1 = bfabs(f.flap.fL)/(f.flap.fL + static_cast<float>(!static_cast<int>(bfabs(f.flap.fL)+0.9999999f)));
-  float t2 = static_cast<float>(!static_cast<int>(bfabs(f.flap.fL)/1.047197f));
-  f.flap.fR = f.flap.fL = (f.flap.fL * t2) + (1.047197f * ((t2 - 1.0f) * -1.0f * t1 ));
+    foriunion t1; foriunion t2; t2.f = t1.f = bfabs(f.flap.fL);//60 deg in rad hex conversion .5 ULP: 0x3F860A92
+    t1.i -= 0x3F860A92;
+    int32_t t3 = !(t1.i & 0x80000000);
+    t1.i = (t2.i * (!t3)) | (t3 * 0x3F860A92);
+    t2.f = f.flap.fL;
+    t1.i |= t2.i & (0x80000000 * (!!(t2.i & 0x7FFFFFFF)));
+    f.flap.fR = f.flap.fL = t1.f;
 }
 
 void PLANE::updateGPS(float lat, float alt, float Long, char hem1, char hem2, float Acc, int hrs, int min, int sec, int Numsat, int Hdop)
@@ -107,7 +111,7 @@ void ERROR::clamp()
   t2.f = bfabs(t.f); t2.i -= 0x3EAAAAAB;
   t.i = (t.i * (!!(t2.i & 0x80000000))) | (0x3EAAAAAB * (!(t2.i & 0x80000000)));
   t.i |= s; roll = t.f;
-  
+
   t.f = pitch; s = t.i & 0x80000000;
   t2.f = bfabs(t.f); t2.i -= 0x3EAAAAAB;
   t.i = (t.i * (!!(t2.i & 0x80000000))) | (0x3EAAAAAB * (!(t2.i & 0x80000000)));
