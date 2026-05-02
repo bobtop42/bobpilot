@@ -1,8 +1,8 @@
 #include "controller.h"
 
-void CONTROLLER::update(PLANE* plane)
+bool CONTROLLER::setUp()
 {
-  int fd = open("/DEV/SERIAL0", O_RDWR | O_NOCTTY | O_NDELAY);
+  fd = open("/DEV/SERIAL0", O_RDWR | O_NOCTTY | O_NDELAY);
   if(fd!= 0)
   {
     close(fd);
@@ -10,10 +10,19 @@ void CONTROLLER::update(PLANE* plane)
     if(fd!=0)
     {
       close(fd);
-      return;
+      return false;
     }
   }
+  return true;
+}
 
+void CONTROLLER::shutDown()
+{
+  close(fd);
+}
+
+void CONTROLLER::update(PLANE* plane)
+{
   uint8_t buf[128];
   int i = 0;
 
