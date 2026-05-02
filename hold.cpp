@@ -1,3 +1,6 @@
+// Copyright 2026 bobtop42
+//
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #include "hold.h"
 
 void HOLD::prePosCalc(float radiusft, float alt, float lat, float lng, int8_t clockWise, PLANE* plane)
