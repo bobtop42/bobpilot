@@ -98,8 +98,8 @@ int main(int argc, char**argv)
             }*/
           case 4:
             {
-	      std::cout<<"EXITING BOBPILOT...\exiting now"<<std::endl;
-	      return 0;
+        std::cout<<"EXITING BOBPILOT...\exiting now"<<std::endl;
+        return 0;
             }
         }
     }
