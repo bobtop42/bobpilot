@@ -1,3 +1,6 @@
+// Copyright 2026 bobtop42
+//
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #ifndef LOGGER_H
 #define LOGGER_H
 #include "MATHLIB.h"
