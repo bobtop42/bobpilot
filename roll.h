@@ -6,11 +6,11 @@
 class ROLL
 {
 public:
-int8_t RollDir;
+int32_t RollDir;
 /*
 if plane is straight RollDir -> 0x00
-if plane is rolling left RollDir -> 0xFF
-if plane is rolling right RollDir -> 0x01
+if plane is rolling left RollDir -> 1
+if plane is rolling right RollDir -> -1
 */
 
 PID pid{0.1f, 0.1f, 0.1f};
