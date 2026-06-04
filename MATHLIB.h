@@ -18,7 +18,7 @@
 #include <ctime>                
 #include <cstdint>
 #include "WPROUTE.h"
-#include "bmath.h"
+#include "blib/bmath.h"
 //#include "SDL.h"
 
 inline float PI = 3.14159f;
