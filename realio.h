@@ -4,18 +4,18 @@
 #ifndef REAL_H
 #define REAL_H
 #include "atc.h"
-#include "gps.h"
+#include "drivers/gps.h"
 #include "hold.h"
-#include "i2c.h"
+#include "drivers/i2c.h"
 #include "kalman.h"
 #include "logger.h"
 #include "navsys.h"
 #include "MATHLIB.h"
-#include "pca9685.h"
+#include "drivers/pca9685.h"
 #include "pid.h"
 #include "pitch.h"
 #include "roll.h"
-#include "controller.h"
+#include "drivers/controller.h"
 
 class REAL
 {
