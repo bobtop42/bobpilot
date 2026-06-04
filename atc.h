@@ -5,7 +5,7 @@
 #define ATC_H
 #include "pid.h"
 #include "MATHLIB.h"
-#include "bmath.h"
+#include "blib/bmath.h"
 
 class ATC
 {
