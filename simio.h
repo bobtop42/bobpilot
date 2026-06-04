@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #ifndef SIM_H
 #define SIM_H
-#include "atc.h"
+#include "Flight_Controls/atc.h"
 #include "drivers/gps.h"
 #include "hold.h"
 #include "drivers/i2c.h"
@@ -12,8 +12,8 @@
 #include "MATHLIB.h"
 #include "drivers/pca9685.h"
 #include "pid.h"
-#include "pitch.h"
-#include "roll.h"
+#include "Flight_Controls/pitch.h"
+#include "Flight_Controls/roll.h"
 #include "screen.h"
 
 class SIM
