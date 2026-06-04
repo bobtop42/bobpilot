@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #ifndef KALMAN_H
 #define KALMAN_H
-#include "i2c.h"
+#include "drivers/i2c.h"
 #include "MATHLIB.h"
 #include "arm_neon.h"
 
