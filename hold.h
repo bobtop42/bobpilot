@@ -5,8 +5,8 @@
 #define HOLD_H
 #include <cstdint>
 #include "MATHLIB.h"
-#include "pitch.h"
-#include "roll.h"
+#include "Flight_Controls/pitch.h"
+#include "Flight_Controls/roll.h"
 
 class HOLD
 {
