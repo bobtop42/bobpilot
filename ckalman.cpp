@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #include "MATHLIB.h" //REPLACE TRIG WITH BTRIG
-#include "bmath.h"
+#include "blib/bmath.h"
 
 void CKALMAN::xPred()
 {
