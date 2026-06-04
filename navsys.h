@@ -6,7 +6,7 @@
 #include <cmath>
 #include "MATHLIB.h"
 #include "WPROUTE.h"
-#include "bmath.h"
+#include "blib/bmath.h"
 //NOTE: add npc counter. Burrently only a hardcoded int
 #ifdef signbit32
 #define signbit32 0x80000000
