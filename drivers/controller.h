@@ -4,7 +4,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 #include "MATHLIB.h"
-#include "atc.h"
+#include "Flight_Controls/atc.h"
 #include "sys/ioctl.h"
 #include "sys/types.h"
 #include "stdint.h"
