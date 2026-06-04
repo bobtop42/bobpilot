@@ -1,3 +1,7 @@
+// Copyright 2026 bobtop42
+//
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 #include "bstd.h"
 
 int32_t bstd::stoi(char *chars, int32_t *index)
