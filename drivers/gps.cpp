@@ -4,6 +4,81 @@
 #include "gps.h"
 #include <tuple>
 
+void GPS::resetbuf(char *buf)
+{
+  int n = read(fd, buf, sizeof(buf));
+  if(n<0){GPGGA = false;}
+}
+
+void GPS::parseDataBuffer()
+{
+  char buf[256];
+  char tbuf[16];
+  int32_t tbl = 0; //temp buffer data length
+  int32_t tbi = 0; //temp buffer index
+  int32_t gpsdata[14] =  {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+  int32_t gpst = 0; //gps data tempstorage
+  int32_t gpsdc = 0; //gps data counter
+  int32_t dcn = 0;
+  int32_t randtemp;
+
+  int n = read(fd, buf, sizeof(buf));
+  if(n<0)
+  {
+    close(fd);
+    return;
+  }
+
+  if(true)//fill in if statement later
+  {
+    int i = 0; int pc = 1; int ps;
+    while(i<256||buf[i]!='$'){i++;}
+    ps = i;
+    int64_t type = ((int64_t) buf[ps+1]<<32) | ((int64_t) buf[ps+2]<<24) | ((int64_t) buf[ps+3]<<16) | ((int64_t) buf[ps+4]<<8) | ((int64_t) buf[ps+5]);
+    if(type == 0x004750474741) //0x004750474741 is GPGGA in hex
+    {
+      i += 7;
+      if(i<251) //UTC time
+      {
+        gpsdata[0] = (buf[i]<<8) | (buf[i+1]); //UTC hours
+        gpsdata[1] = (buf[i+2]<<8) | (buf[i+3]); //UTC minutes
+        gpsdata[2] = (buf[i+4]<<8) | (buf[i+5]); //UTC seconds
+        gpsdc = 3;
+        //cs = 0;
+      }
+      else
+      {
+        tbl = 256 - i;
+        memcpy(&buf[i], &tbuf,tbl);
+        resetbuf(buf);
+        ps = 1;
+        while(tbi < tbl) //add error checking to make sure it can handle if the buf only had 'GPGGA', and no data after. currently, it assumes at least one byte is present after the GPGGA header 
+          {
+            gpsdata[gpsdc] |= tbuf[tbi] << ps << 3;
+            gpsdc += (ps ^ 1) & 0x1;
+            ps ^= 1;
+            tbi++;
+          }
+        int32_t addData = -((int8_t) ps ^ 1);
+        gpsdata[gpsdc] |= buf[0] & addData;
+        i = 0; i += addData & 0x1;
+        gpsdc += i;
+        
+        gpst = (buf[i] << 8) | (buf[i+1]);
+        gpst &= -((gpsdc) & 1);
+        gpsdata[gpsdc] |= gpst;
+        randtemp = (gpsdc & 1) << 1;
+        gpsdc += randtemp; i += randtemp;
+        
+        gpst = (buf[i] << 8) | (buf[i+1]);
+        gpsdata[gpsdc] |= gpst;
+        gpsdc = 3; i += 2;
+      }
+      while(i<256||buf[i]!=','){i++;}
+    }
+  }
+}
+
 void GPS::punctuationMarker(const std::string gpsmsg)
 {
   int i = 0;
