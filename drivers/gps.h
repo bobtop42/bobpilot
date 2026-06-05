@@ -26,6 +26,10 @@ void update(PLANE* plane, int tries);
 void punctuationMarker(const std::string gpsmsg);
 auto parser(const std::string gpsmsg, int puncLocation[67]);
 
+void parseDataBuffer();
+void resetbuf(char *buf);
+
+
 int puncLocation[67];
 bool gpsERRORepen = false;
 bool gpsERRORread = false;
