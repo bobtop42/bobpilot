@@ -37,6 +37,22 @@
 #define data8 0x7F
 #endif
 
+#ifndef all64
+#define all64 0xFFFFFFFFFFFFFFFF
+#endif
+
+#ifndef all32
+#define all32 0xFFFFFFFF
+#endif
+
+#ifndef all16
+#define all16 0xFFFF
+#endif
+
+#ifndef all8
+#define all8 0xFF
+#endif
+
 //reg manipulation
 #ifndef fti64
 #define fti64 *(int64_t*)&
