@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 #include "gps.h"
+#include <cstring>
 #include <tuple>
 
 void GPS::resetbuf(char *buf)
@@ -22,6 +23,8 @@ void GPS::parseDataBuffer()
   int32_t dcn = 0;
   int32_t randtemp;
 
+  char checkSum;
+
   int n = read(fd, buf, sizeof(buf));
   if(n<0)
   {
@@ -37,9 +40,11 @@ void GPS::parseDataBuffer()
     int64_t type = ((int64_t) buf[ps+1]<<32) | ((int64_t) buf[ps+2]<<24) | ((int64_t) buf[ps+3]<<16) | ((int64_t) buf[ps+4]<<8) | ((int64_t) buf[ps+5]);
     if(type == 0x004750474741) //0x004750474741 is GPGGA in hex
     {
+      checkSum = 0b01010110;
       i += 7;
       if(i<251) //UTC time
       {
+        checkSum ^= buf[i] ^ buf[i+1] ^ buf[i+2] ^ buf[i+3] ^ buf[i+4] ^ buf[i+5];
         gpsdata[0] = (buf[i]<<8) | (buf[i+1]); //UTC hours
         gpsdata[1] = (buf[i+2]<<8) | (buf[i+3]); //UTC minutes
         gpsdata[2] = (buf[i+4]<<8) | (buf[i+5]); //UTC seconds
@@ -54,30 +59,97 @@ void GPS::parseDataBuffer()
         ps = 1;
         while(tbi < tbl) //add error checking to make sure it can handle if the buf only had 'GPGGA', and no data after. currently, it assumes at least one byte is present after the GPGGA header 
           {
+            checkSum ^= tbuf[tbi];
             gpsdata[gpsdc] |= tbuf[tbi] << ps << 3;
             gpsdc += (ps ^ 1) & 0x1;
             ps ^= 1;
             tbi++;
           }
         int32_t addData = -((int8_t) ps ^ 1);
-        gpsdata[gpsdc] |= buf[0] & addData;
+        randtemp = buf[0] & addData;
+        checkSum ^= randtemp;
+        gpsdata[gpsdc] |= randtemp;
         i = 0; i += addData & 0x1;
         gpsdc += i;
         
         gpst = (buf[i] << 8) | (buf[i+1]);
-        gpst &= -((gpsdc) & 1);
+        randtemp = -((gpsdc) & 1);
+        gpst &= randtemp;
+        checkSum ^= (buf[i] ^ buf[i+1]) & randtemp;
         gpsdata[gpsdc] |= gpst;
         randtemp = (gpsdc & 1) << 1;
         gpsdc += randtemp; i += randtemp;
         
         gpst = (buf[i] << 8) | (buf[i+1]);
+        checkSum ^= buf[i] ^ buf[i+1];
         gpsdata[gpsdc] |= gpst;
         gpsdc = 3; i += 2;
       }
-      while(i<256||buf[i]!=','){i++;}
+      while(buf[i]!=',')
+      {
+        checkSum ^= buf[i];
+        if(i<256){resetbuf(buf);}
+        i++;
+      }
+      checkSum ^= ',';
+      i++;
+      if(i<255)
+      {
+        tbl = 256 - i;
+        memcpy(&buf[i], &tbuf,tbl);
+        resetbuf(buf);
+
+        //if i has 1 byte left then it puts the deg from the temp buf into gpsdat for lat, else its zeroed out
+        randtemp = (-(i & 0x1)) & 0xFF;
+        ps = randtemp & 0x1;
+        gpst = tbuf[0] & randtemp;
+        checkSum ^= gpst;
+        gpsdata[4] = gpst << 8;
+        
+        //if i had 0 bytes left the it did not copy from the tempt buf, therefore ~0 & 0xFF == 0xFF and we can use the buf at 0 to get the data and then zero out the data if we already copyied from the temp buf and not the newly read data
+        randtemp = (~randtemp) & 0xFF;
+        gpst = buf[0] & randtemp;
+        checkSum ^= gpst;
+        gpsdata[4] |= gpst << 8;
+        
+        //if we copied from the temp buf randtemp will be 0x0, so then we know the 2nd digit of degrees is the first byte of the buf, but if we didnt, then randtemp will be 0xFF and we can mask it to get the second byte from the new buf making us grab from the first byte or 2nd depending on which we need to get it from
+        randtemp = buf[randtemp & 1];
+        checkSum ^= randtemp;
+        gpsdata[4] |= randtemp;
+      }
     }
   }
 }
+
+void GPS::validateData(PLANE* plane)
+{
+  //NOTE: this function is not complete but rather serves as a outline for an anti-jamming/spoofing detection algorithm that will be integrated into ohter areas of the codebase toincrease the speed primarily by reducing the amount of data that must be calculated twice amongst other reasons and benifits. This function will most likely be integrated into the errorCalc function in the navsys file
+
+  //sqrt assumes m/s^2
+  float px, py, pz, rslope, pslope;
+  int32_t temp;
+
+  //calc est pos from old gps data. Note 'gps' data does not imply that it is actually from the gps but rather is gps if data is trusted, or blended data from multiple sources if data is not as trusted. This design allows us to handle only one input/output from location data but also blend it before it gets to this step, creating a injection point to blend data. This "anonimizes" the data's source for downstream processing, making the sure the most rusted data is recieved from one place regardless of how it was obtained.
+  px = qsqrt(plane->pAngle[0][0]) * (float) plane->dt;
+  temp = fti32 plane->pAngle[0][0] & signbit32;
+  temp |= fti32 px; px = itf32 temp;
+  px += plane->planeft.old.pxft; //plane.old... will be added at a later date. just a placeholder for now
+
+  py = qsqrt(plane->pAngle[0][1]) * (float) plane->dt;
+  temp = fti32 plane->pAngle[0][1] & signbit32;
+  temp |= fti32 py; py = itf32 temp;
+  py += plane->planeft.old.pyft;
+
+  pz = qsqrt(plane->pAngle[0][2]) * (float) plane->dt;
+  temp = fti32 plane->pAngle[0][2] & signbit32;
+  temp |= fti32 pz; pz = itf32 temp;
+  pz += plane->planeft.old.pzft;
+
+  //slopes. 0x7F8 -> inf (up), 0xFF8 -inf (down)
+  // if a slope == 0, the inverse will be +/- inf, so it will be looked at below when calculating the given gps pos, and if its reasonable or not
+
+}
+
 
 void GPS::punctuationMarker(const std::string gpsmsg)
 {
