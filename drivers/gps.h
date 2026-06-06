@@ -4,6 +4,8 @@
 #ifndef GPS_H
 #define GPS_H
 #include "MATHLIB.h"
+#include "bbitwise.h"
+#include "bmath.h"
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -29,6 +31,7 @@ auto parser(const std::string gpsmsg, int puncLocation[67]);
 void parseDataBuffer();
 void resetbuf(char *buf);
 
+void validateData(PLANE *plane);
 
 int puncLocation[67];
 bool gpsERRORepen = false;
