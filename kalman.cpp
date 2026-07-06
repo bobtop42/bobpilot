@@ -6,23 +6,14 @@
 
 void KALMAN::xPred(long int dt)
 {
-  float AX[6];
-  float BU [6];
-
-  for(int i=0; i<3; ++i)
-    {
-      for(int j=0; j<3; ++j)
-        {
-          AX[i] = (A[i][j] * X[i][0])  + (A[i][j] * X[i+3][0]);
-          AX[i+3] = (A[i][j] * X[i+3][0]);
-
-          BU[i] += B[i][j] * AC[i][0];
-          BU[i+3] += B[i+3][j] * AC[i][0];
-        }
-
-      X[i][0] = AX[i] + BU[i];
-      X[i+3][0] = AX[i+3] + BU[i+3];
-    }
+  float32x4_t v1 = vld1q_f32(X);
+  float32x4_t v2 = vld1q_f32(X+4);
+  float32x4_t v3 = vld1q_f32(U);
+  v2 = vaddq_f32(v2, v3);
+  float32x4_t v4 = vdupq_n_f32(static_cast<float>(dt));
+  v4 = vfmaq_f32(v1, v2, v4); // should be v4 = v1 + v2 * v4
+  vst1q_f32(X, v4);
+  vst1q_f32(X+4, v2);
 }
 
 void KALMAN::pPred(long int dt)
